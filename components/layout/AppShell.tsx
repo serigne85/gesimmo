@@ -16,6 +16,8 @@ type AppShellProps = {
    * où les icônes ont le droit d'exister.
    */
   role: Role;
+  /** Nom affiché dans la topbar. */
+  userName: string;
   /** Le contenu de la page en cours. */
   children: React.ReactNode;
 };
@@ -30,7 +32,7 @@ type AppShellProps = {
  * Sur grand écran (lg+), la sidebar est fixe à gauche.
  * Sur mobile, elle est cachée et s'ouvre en tiroir par-dessus le contenu.
  */
-export default function AppShell({ role, children }: AppShellProps) {
+export default function AppShell({ role, userName, children }: AppShellProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const navItems = getNavigationForRole(role);
 
@@ -68,7 +70,7 @@ export default function AppShell({ role, children }: AppShellProps) {
 
       {/* Colonne de droite : topbar + contenu défilant */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar onOpenMenu={() => setIsDrawerOpen(true)} />
+        <Topbar onOpenMenu={() => setIsDrawerOpen(true)} userName={userName} />
         <main className="flex-1 overflow-y-auto bg-zinc-50 p-4 sm:p-6 dark:bg-zinc-900">
           {children}
         </main>
