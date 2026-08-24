@@ -102,7 +102,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Utilisateurs",
     href: "/utilisateurs",
     icon: UserCog,
-    roles: ["admin", "direction"],
+    roles: ["admin"],
   },
   {
     label: "Paramètres",

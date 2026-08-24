@@ -20,7 +20,8 @@ export default async function AppLayout({
 }) {
   const profil = await getUtilisateurConnecte();
 
-  if (!profil) {
+  // Pas de profil (compte non rattaché) ou compte désactivé : accès refusé.
+  if (!profil || !profil.actif) {
     redirect("/connexion");
   }
 

@@ -1,6 +1,19 @@
-/**
- * Rôles de l'application, tels que définis dans CLAUDE.md.
- * Le type `Role` interdit toute faute de frappe : si on écrit ailleurs
- * "gestionaire" au lieu de "gestionnaire", TypeScript refuse de compiler.
- */
 export type Role = "admin" | "direction" | "agent" | "gestionnaire" | "comptable";
+
+/** Tous les rôles, dans l'ordre d'affichage (utile pour les listes déroulantes). */
+export const ROLES: Role[] = [
+  "admin",
+  "direction",
+  "agent",
+  "gestionnaire",
+  "comptable",
+];
+
+/** Libellés affichés dans l'interface (le code reste en anglais, l'UI en français). */
+export const ROLE_LABELS: Record<Role, string> = {
+  admin: "Administrateur",
+  direction: "Direction",
+  agent: "Agent",
+  gestionnaire: "Gestionnaire",
+  comptable: "Comptable",
+};

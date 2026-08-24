@@ -44,6 +44,13 @@ create table if not exists public.utilisateurs (
 grant select on public.agences to authenticated;
 grant select on public.utilisateurs to authenticated;
 
+-- Le rôle service_role (administration côté serveur) doit pouvoir tout faire.
+-- Il contourne la RLS mais reste soumis aux GRANT de table : sans ceci, même
+-- l'admin reçoit "permission denied". (Ce projet n'accorde pas les droits par
+-- défaut sur les nouvelles tables, d'où ces GRANT explicites.)
+grant all on public.agences to service_role;
+grant all on public.utilisateurs to service_role;
+
 alter table public.agences enable row level security;
 alter table public.utilisateurs enable row level security;
 

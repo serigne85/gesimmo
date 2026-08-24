@@ -22,7 +22,7 @@ export async function getUtilisateurConnecte(): Promise<UtilisateurProfil | null
 
   const { data, error } = await supabase
     .from("utilisateurs")
-    .select("id, agence_id, nom_complet, email, role")
+    .select("id, agence_id, nom_complet, email, role, actif")
     .eq("id", user.id)
     .is("supprime_le", null)
     .single();
@@ -35,5 +35,6 @@ export async function getUtilisateurConnecte(): Promise<UtilisateurProfil | null
     nomComplet: data.nom_complet,
     email: data.email,
     role: data.role,
+    actif: data.actif,
   };
 }
