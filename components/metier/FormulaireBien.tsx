@@ -1,26 +1,38 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
 import {
   TYPES_BIEN,
   TYPE_BIEN_LABELS,
-  STATUTS_JURIDIQUES,
-  STATUT_JURIDIQUE_LABELS,
   type ObjectifBien,
+  type BienEdition,
 } from "@/types/bien";
 import type { ZoneOption } from "@/services/reference";
-import { creerBien, type CreerBienState } from "@/services/biens-actions";
+import {
+  creerBien,
+  modifierBien,
+  type CreerBienState,
+} from "@/services/biens-actions";
+import { champClasse, labelClasse } from "./champsBien";
+import ChampsBienOptionnels from "./ChampsBienOptionnels";
 
 const initialState: CreerBienState = { error: null };
 
-const champClasse =
-  "w-full rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100";
-const labelClasse =
-  "mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300";
-
-export default function FormulaireBien({ zones }: { zones: ZoneOption[] }) {
-  const [state, formAction, isPending] = useActionState(creerBien, initialState);
+/**
+ * Formulaire de bien, deux modes : `bien` absent = création, `bien` présent =
+ * édition (champs pré-remplis). En édition, le propriétaire n'est pas modifiable
+ * ici (contact partagé, géré depuis le module Contacts).
+ */
+export default function FormulaireBien({
+  zones,
+  bien,
+}: {
+  zones: ZoneOption[];
+  bien?: BienEdition;
+}) {
+  const isEdition = !!bien;
+  const action = isEdition ? modifierBien.bind(null, bien.id) : creerBien;
+  const [state, formAction, isPending] = useActionState(action, initialState);
 
   // Villes distinctes déduites des zones (pour la cascade ville → zone).
   const villes = useMemo(() => {
@@ -29,9 +41,8 @@ export default function FormulaireBien({ zones }: { zones: ZoneOption[] }) {
     return Array.from(map, ([id, nom]) => ({ id, nom }));
   }, [zones]);
 
-  const [villeId, setVilleId] = useState(villes[0]?.id ?? "");
-  const [objectif, setObjectif] = useState<ObjectifBien>("vente");
-  const [showMore, setShowMore] = useState(false);
+  const [villeId, setVilleId] = useState(bien?.villeId ?? villes[0]?.id ?? "");
+  const [objectif, setObjectif] = useState<ObjectifBien>(bien?.objectif ?? "vente");
 
   const zonesFiltrees = zones.filter((z) => z.villeId === villeId);
 
@@ -64,7 +75,13 @@ export default function FormulaireBien({ zones }: { zones: ZoneOption[] }) {
         <label htmlFor="type" className={labelClasse}>
           Type de bien
         </label>
-        <select id="type" name="type" required defaultValue="appartement" className={champClasse}>
+        <select
+          id="type"
+          name="type"
+          required
+          defaultValue={bien?.type ?? "appartement"}
+          className={champClasse}
+        >
           {TYPES_BIEN.map((t) => (
             <option key={t} value={t}>
               {TYPE_BIEN_LABELS[t]}
@@ -96,7 +113,13 @@ export default function FormulaireBien({ zones }: { zones: ZoneOption[] }) {
           <label htmlFor="zoneId" className={labelClasse}>
             Zone
           </label>
-          <select id="zoneId" name="zoneId" required className={champClasse}>
+          <select
+            id="zoneId"
+            name="zoneId"
+            required
+            defaultValue={bien?.zoneId}
+            className={champClasse}
+          >
             {zonesFiltrees.map((z) => (
               <option key={z.id} value={z.id}>
                 {z.nom}
@@ -106,75 +129,33 @@ export default function FormulaireBien({ zones }: { zones: ZoneOption[] }) {
         </div>
       </div>
 
-      {/* Propriétaire */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="proprietaireNom" className={labelClasse}>
-            Nom du propriétaire
-          </label>
-          <input id="proprietaireNom" name="proprietaireNom" type="text" required className={champClasse} />
+      {/* Propriétaire : saisi à la création seulement (contact partagé). */}
+      {!isEdition && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="proprietaireNom" className={labelClasse}>
+              Nom du propriétaire
+            </label>
+            <input id="proprietaireNom" name="proprietaireNom" type="text" required className={champClasse} />
+          </div>
+          <div>
+            <label htmlFor="proprietaireTelephone" className={labelClasse}>
+              Téléphone du propriétaire
+            </label>
+            <input
+              id="proprietaireTelephone"
+              name="proprietaireTelephone"
+              type="tel"
+              required
+              placeholder="77 123 45 67"
+              className={champClasse}
+            />
+          </div>
         </div>
-        <div>
-          <label htmlFor="proprietaireTelephone" className={labelClasse}>
-            Téléphone du propriétaire
-          </label>
-          <input
-            id="proprietaireTelephone"
-            name="proprietaireTelephone"
-            type="tel"
-            required
-            placeholder="77 123 45 67"
-            className={champClasse}
-          />
-        </div>
-      </div>
+      )}
 
       {/* Détails optionnels repliés (sinon les agents cessent de saisir) */}
-      <div className="border-t border-zinc-200 pt-3 dark:border-zinc-800">
-        <button
-          type="button"
-          onClick={() => setShowMore((v) => !v)}
-          className="flex items-center gap-1 text-sm font-medium text-blue-800 dark:text-blue-300"
-        >
-          <ChevronDown
-            className={`h-4 w-4 transition-transform ${showMore ? "rotate-180" : ""}`}
-            aria-hidden="true"
-          />
-          Détails complémentaires (optionnel)
-        </button>
-
-        {showMore && (
-          <div className="mt-4 space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="statutJuridique" className={labelClasse}>
-                  Statut juridique
-                </label>
-                <select id="statutJuridique" name="statutJuridique" defaultValue="" className={champClasse}>
-                  <option value="">Non renseigné</option>
-                  {STATUTS_JURIDIQUES.map((s) => (
-                    <option key={s} value={s}>
-                      {STATUT_JURIDIQUE_LABELS[s]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="prix" className={labelClasse}>
-                  Prix (FCFA)
-                </label>
-                <input id="prix" name="prix" type="number" min="0" step="1" className={champClasse} />
-              </div>
-            </div>
-            <div>
-              <label htmlFor="description" className={labelClasse}>
-                Description
-              </label>
-              <textarea id="description" name="description" rows={3} className={champClasse} />
-            </div>
-          </div>
-        )}
-      </div>
+      <ChampsBienOptionnels bien={bien} defaultOpen={isEdition} />
 
       {state.error && (
         <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
@@ -187,7 +168,11 @@ export default function FormulaireBien({ zones }: { zones: ZoneOption[] }) {
         disabled={isPending}
         className="w-full rounded-md bg-blue-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-800 disabled:opacity-60 sm:w-auto"
       >
-        {isPending ? "Enregistrement…" : "Enregistrer le bien"}
+        {isPending
+          ? "Enregistrement…"
+          : isEdition
+            ? "Enregistrer les modifications"
+            : "Enregistrer le bien"}
       </button>
     </form>
   );

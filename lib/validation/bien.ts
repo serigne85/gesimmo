@@ -28,3 +28,14 @@ export const creerBienSchema = z.object({
 });
 
 export type CreerBienInput = z.infer<typeof creerBienSchema>;
+
+/**
+ * Édition d'un bien : mêmes champs que la création, sans le propriétaire
+ * (le contact est partagé entre biens, il se gère depuis le module Contacts).
+ */
+export const modifierBienSchema = creerBienSchema.omit({
+  proprietaireNom: true,
+  proprietaireTelephone: true,
+});
+
+export type ModifierBienInput = z.infer<typeof modifierBienSchema>;

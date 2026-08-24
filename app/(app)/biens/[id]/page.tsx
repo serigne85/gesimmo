@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Phone, MessageCircle } from "lucide-react";
+import { ArrowLeft, Phone, MessageCircle, Pencil } from "lucide-react";
 import { getBienById } from "@/services/biens";
 import {
   TYPE_BIEN_LABELS,
@@ -9,6 +9,7 @@ import {
 } from "@/types/bien";
 import { formatFcfa, formatDate, telHref, whatsappHref } from "@/lib/utils/format";
 import BadgeStatutBien from "@/components/metier/BadgeStatutBien";
+import ActionsStatutBien from "@/components/metier/ActionsStatutBien";
 
 /**
  * Fiche détail d'un bien. Server Component : chargé côté serveur (RLS active).
@@ -36,17 +37,26 @@ export default async function BienDetailPage({
       </Link>
 
       {/* En-tête */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
-          {bien.reference}
-        </span>
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-          {TYPE_BIEN_LABELS[bien.type]}
-        </h1>
-        <span className="text-sm text-zinc-500 dark:text-zinc-400">
-          · {OBJECTIF_LABELS[bien.objectif]}
-        </span>
-        <BadgeStatutBien statut={bien.statut} />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+            {bien.reference}
+          </span>
+          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+            {TYPE_BIEN_LABELS[bien.type]}
+          </h1>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">
+            · {OBJECTIF_LABELS[bien.objectif]}
+          </span>
+          <BadgeStatutBien statut={bien.statut} />
+        </div>
+        <Link
+          href={`/biens/${bien.id}/modifier`}
+          className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+        >
+          <Pencil className="h-4 w-4" aria-hidden="true" />
+          Modifier
+        </Link>
       </div>
 
       {/* Caractéristiques */}
@@ -68,6 +78,21 @@ export default async function BienDetailPage({
             </div>
           )}
         </dl>
+      </div>
+
+      {/* Cycle de vie */}
+      <div className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="mb-3 flex items-center gap-2">
+          <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            Cycle de vie
+          </h2>
+          <BadgeStatutBien statut={bien.statut} />
+        </div>
+        <ActionsStatutBien
+          id={bien.id}
+          statut={bien.statut}
+          objectif={bien.objectif}
+        />
       </div>
 
       {/* Propriétaire */}

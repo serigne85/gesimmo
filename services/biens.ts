@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { BienListe, BienDetail } from "@/types/bien";
+import type { BienListe, BienDetail, BienEdition } from "@/types/bien";
 
 export const BIENS_PAGE_SIZE = 20;
 
@@ -106,5 +106,41 @@ export async function getBienById(id: string): Promise<BienDetail | null> {
     proprietaireNom: (proprio?.nom_complet as string) ?? "",
     proprietaireTelephone: (proprio?.telephone as string) ?? "",
     creeLe: b.cree_le as string,
+  };
+}
+
+/**
+ * Valeurs brutes d'un bien pour l'édition (ids de zone/ville, pas de libellés).
+ * Renvoie null si le bien est absent, supprimé, ou hors agence (RLS).
+ */
+export async function getBienEdition(id: string): Promise<BienEdition | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("biens")
+    .select(
+      "id, reference, type, objectif, zone_id, statut_juridique, prix, " +
+        "description, zones(ville_id)"
+    )
+    .eq("id", id)
+    .is("supprime_le", null)
+    .maybeSingle();
+
+  if (error) throw new Error(`Lecture du bien impossible : ${error.message}`);
+  if (!data) return null;
+
+  const b = data as unknown as Record<string, unknown>;
+  const zone = premier(b.zones as Record<string, unknown> | Record<string, unknown>[] | null);
+
+  return {
+    id: b.id as string,
+    reference: b.reference as string,
+    type: b.type as BienEdition["type"],
+    objectif: b.objectif as BienEdition["objectif"],
+    villeId: (zone?.ville_id as string) ?? "",
+    zoneId: (b.zone_id as string) ?? "",
+    statutJuridique: (b.statut_juridique as BienEdition["statutJuridique"]) ?? null,
+    prix: (b.prix as number | null) ?? null,
+    description: (b.description as string | null) ?? null,
   };
 }

@@ -106,6 +106,19 @@ export type BienListe = {
   proprietaireTelephone: string;
 };
 
+/** Valeurs brutes d'un bien pour pré-remplir le formulaire d'édition. */
+export type BienEdition = {
+  id: string;
+  reference: string;
+  type: TypeBien;
+  objectif: ObjectifBien;
+  villeId: string;
+  zoneId: string;
+  statutJuridique: StatutJuridique | null;
+  prix: number | null;
+  description: string | null;
+};
+
 /** Fiche détail complète d'un bien (avec libellés et propriétaire joints). */
 export type BienDetail = {
   id: string;
