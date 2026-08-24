@@ -4,6 +4,17 @@ export function formatFcfa(montant: number | null | undefined): string {
   return `${montant.toLocaleString("fr-FR")} FCFA`;
 }
 
+/** Formate une date en Africa/Dakar (JJ/MM/AAAA). */
+export function formatDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    timeZone: "Africa/Dakar",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 /** Lien d'appel téléphonique. */
 export function telHref(telephone: string): string {
   return `tel:${telephone.replace(/\s/g, "")}`;

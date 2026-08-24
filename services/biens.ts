@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { BienListe } from "@/types/bien";
+import type { BienListe, BienDetail } from "@/types/bien";
 
 export const BIENS_PAGE_SIZE = 20;
 
@@ -63,4 +63,48 @@ export async function listBiens(page = 1): Promise<BiensPage> {
   });
 
   return { rows, total: count ?? 0, page, pageSize: BIENS_PAGE_SIZE };
+}
+
+/**
+ * Fiche détail d'un bien par son id. Renvoie null si le bien n'existe pas,
+ * est supprimé, ou appartient à une autre agence (masqué par la RLS).
+ */
+export async function getBienById(id: string): Promise<BienDetail | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("biens")
+    .select(
+      "id, reference, type, objectif, statut, statut_juridique, prix, " +
+        "description, cree_le, " +
+        "zones(nom, villes(nom)), " +
+        "contacts(nom_complet, telephone)"
+    )
+    .eq("id", id)
+    .is("supprime_le", null)
+    .maybeSingle();
+
+  if (error) throw new Error(`Lecture du bien impossible : ${error.message}`);
+  if (!data) return null;
+
+  const b = data as unknown as Record<string, unknown>;
+  const zone = premier(b.zones as Record<string, unknown> | Record<string, unknown>[] | null);
+  const ville = zone ? premier(zone.villes as Record<string, unknown> | Record<string, unknown>[] | null) : null;
+  const proprio = premier(b.contacts as Record<string, unknown> | Record<string, unknown>[] | null);
+
+  return {
+    id: b.id as string,
+    reference: b.reference as string,
+    type: b.type as BienDetail["type"],
+    objectif: b.objectif as BienDetail["objectif"],
+    statut: b.statut as BienDetail["statut"],
+    statutJuridique: (b.statut_juridique as BienDetail["statutJuridique"]) ?? null,
+    prix: (b.prix as number | null) ?? null,
+    description: (b.description as string | null) ?? null,
+    zoneNom: (zone?.nom as string) ?? null,
+    villeNom: (ville?.nom as string) ?? null,
+    proprietaireNom: (proprio?.nom_complet as string) ?? "",
+    proprietaireTelephone: (proprio?.telephone as string) ?? "",
+    creeLe: b.cree_le as string,
+  };
 }

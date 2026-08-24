@@ -105,3 +105,20 @@ export type BienListe = {
   proprietaireNom: string;
   proprietaireTelephone: string;
 };
+
+/** Fiche détail complète d'un bien (avec libellés et propriétaire joints). */
+export type BienDetail = {
+  id: string;
+  reference: string;
+  type: TypeBien;
+  objectif: ObjectifBien;
+  statut: StatutBien;
+  statutJuridique: StatutJuridique | null;
+  prix: number | null;
+  description: string | null;
+  zoneNom: string | null;
+  villeNom: string | null;
+  proprietaireNom: string;
+  proprietaireTelephone: string;
+  creeLe: string;
+};

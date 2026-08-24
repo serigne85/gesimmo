@@ -41,7 +41,7 @@ export default async function BiensPage({
 
       {rows.length === 0 ? (
         <div className="rounded-lg border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-          Aucun bien pour l'instant. Commencez par en saisir un.
+          Aucun bien pour l&apos;instant. Commencez par en saisir un.
         </div>
       ) : (
         <ul className="divide-y divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">

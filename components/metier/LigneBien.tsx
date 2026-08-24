@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Phone, MessageCircle } from "lucide-react";
 import {
   TYPE_BIEN_LABELS,
@@ -16,7 +17,10 @@ export default function LigneBien({ bien }: { bien: BienListe }) {
 
   return (
     <li className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
+      <Link
+        href={`/biens/${bien.id}`}
+        className="min-w-0 rounded-md hover:opacity-80"
+      >
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
             {bien.reference}
@@ -33,7 +37,7 @@ export default function LigneBien({ bien }: { bien: BienListe }) {
           {lieu || "Zone non précisée"} · {bien.proprietaireNom}
           {bien.prix !== null && ` · ${formatFcfa(bien.prix)}`}
         </p>
-      </div>
+      </Link>
 
       {/* Actions rapides : appeler / WhatsApp le propriétaire */}
       <div className="flex items-center gap-2">
