@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { SearchX } from "lucide-react";
 import {
   listBiensVitrine,
-  listVillesVitrine,
+  listZonesVitrine,
   estUuid,
   VITRINE_PAGE_SIZE,
 } from "@/services/vitrine";
@@ -31,7 +31,7 @@ export default async function NosBiensPage({
     page?: string;
     objectif?: string;
     type?: string;
-    ville?: string;
+    zone?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -46,12 +46,12 @@ export default async function NosBiensPage({
     ? (sp.type as TypeBien)
     : undefined;
   // On n'accepte qu'un identifiant au format UUID : une valeur trafiquée dans
-  // l'URL (?ville=zzz) provoquerait sinon une erreur SQL (uuid invalide).
-  const villeId = sp.ville && estUuid(sp.ville) ? sp.ville : undefined;
+  // l'URL (?zone=zzz) provoquerait sinon une erreur SQL (uuid invalide).
+  const zoneId = sp.zone && estUuid(sp.zone) ? sp.zone : undefined;
 
-  const [{ rows, total }, villes] = await Promise.all([
-    listBiensVitrine(page, { objectif, type, villeId }),
-    listVillesVitrine(),
+  const [{ rows, total }, zones] = await Promise.all([
+    listBiensVitrine(page, { objectif, type, zoneId }),
+    listZonesVitrine(),
   ]);
   const nbPages = Math.max(1, Math.ceil(total / VITRINE_PAGE_SIZE));
 
@@ -59,7 +59,7 @@ export default async function NosBiensPage({
   const paramsBase = new URLSearchParams();
   if (objectif) paramsBase.set("objectif", objectif);
   if (type) paramsBase.set("type", type);
-  if (villeId) paramsBase.set("ville", villeId);
+  if (zoneId) paramsBase.set("zone", zoneId);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -72,7 +72,7 @@ export default async function NosBiensPage({
         </p>
       </header>
 
-      <FiltresVitrine villes={villes} />
+      <FiltresVitrine zones={zones} />
 
       {rows.length === 0 ? (
         <div className="mt-10 flex flex-col items-center rounded-2xl border border-dashed border-craie-200 bg-craie-100/50 p-14 text-center">

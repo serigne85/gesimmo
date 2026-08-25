@@ -58,7 +58,7 @@ export type BienVitrineDetail = {
 export type FiltresVitrine = {
   objectif?: ObjectifBien;
   type?: TypeBien;
-  villeId?: string;
+  zoneId?: string;
 };
 
 export type VitrinePage = {
@@ -68,7 +68,7 @@ export type VitrinePage = {
   pageSize: number;
 };
 
-export type VilleOption = { id: string; nom: string };
+export type ZoneVitrineOption = { id: string; nom: string; villeNom: string };
 
 /** Extrait un objet lié qu'il soit renvoyé comme objet ou comme tableau. */
 function premier<T>(rel: T | T[] | null | undefined): T | null {
@@ -105,7 +105,7 @@ function appliquerFiltres<T>(query: T, filtres: FiltresVitrine): T {
   let q = query as unknown as QueryEq;
   if (filtres.objectif) q = q.eq("objectif", filtres.objectif);
   if (filtres.type) q = q.eq("type", filtres.type);
-  if (filtres.villeId) q = q.eq("zones.ville_id", filtres.villeId);
+  if (filtres.zoneId) q = q.eq("zone_id", filtres.zoneId);
   return q as unknown as T;
 }
 
@@ -167,7 +167,7 @@ export async function listBiensVitrine(
   const compte = appliquerFiltres(
     admin
       .from("biens")
-      .select("id, zones!inner(ville_id)", { count: "exact", head: true })
+      .select("id", { count: "exact", head: true })
       .eq("statut", "disponible")
       .eq("publie", true)
       .is("supprime_le", null),
@@ -369,14 +369,39 @@ export async function getUrlPhotoPrincipalePublique(
   return signed?.signedUrl ?? null;
 }
 
-/** Liste des villes (pour le filtre public). Table de référence, lue en admin. */
-export async function listVillesVitrine(): Promise<VilleOption[]> {
+/**
+ * Zones disponibles pour le filtre public : seulement celles qui ont AU MOINS un
+ * bien en ligne (disponible ET publié), pour ne pas proposer de zone vide. On
+ * déduplique côté serveur. Le nom de la ville accompagne la zone (deux zones
+ * peuvent partager un nom dans des villes différentes).
+ */
+export async function listZonesVitrine(): Promise<ZoneVitrineOption[]> {
   const admin = createAdminClient();
   const { data, error } = await admin
-    .from("villes")
-    .select("id, nom")
-    .order("nom", { ascending: true });
+    .from("biens")
+    .select("zone_id, zones!inner(nom, villes(nom))")
+    .eq("statut", "disponible")
+    .eq("publie", true)
+    .is("supprime_le", null);
 
-  if (error) throw new Error(`Lecture des villes impossible : ${error.message}`);
-  return (data ?? []).map((v) => ({ id: v.id as string, nom: v.nom as string }));
+  if (error) throw new Error(`Lecture des zones impossible : ${error.message}`);
+
+  const parId = new Map<string, ZoneVitrineOption>();
+  for (const row of (data ?? []) as unknown as Record<string, unknown>[]) {
+    const id = row.zone_id as string;
+    if (!id || parId.has(id)) continue;
+    const zone = premier(
+      row.zones as Record<string, unknown> | Record<string, unknown>[] | null
+    );
+    const ville = zone
+      ? premier(zone.villes as Record<string, unknown> | Record<string, unknown>[] | null)
+      : null;
+    parId.set(id, {
+      id,
+      nom: (zone?.nom as string) ?? "",
+      villeNom: (ville?.nom as string) ?? "",
+    });
+  }
+
+  return [...parId.values()].sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
 }

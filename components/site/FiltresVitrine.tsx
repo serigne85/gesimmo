@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { TYPES_BIEN, TYPE_BIEN_LABELS } from "@/types/bien";
-import type { VilleOption } from "@/services/vitrine";
+import type { ZoneVitrineOption } from "@/services/vitrine";
 
 const selectClasse =
   "w-full rounded-lg border border-craie-200 bg-craie-50 px-3 py-2 text-sm text-slate-700 transition-colors focus:border-marine focus:outline-none focus:ring-1 focus:ring-marine";
@@ -14,7 +14,11 @@ const labelClasse = "mb-1 block text-xs font-medium text-slate-500";
  * page (Server Component) relit ces paramètres et recharge les données filtrées
  * côté serveur. Toute sélection remet la pagination à la première page.
  */
-export default function FiltresVitrine({ villes }: { villes: VilleOption[] }) {
+export default function FiltresVitrine({
+  zones,
+}: {
+  zones: ZoneVitrineOption[];
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -39,7 +43,7 @@ export default function FiltresVitrine({ villes }: { villes: VilleOption[] }) {
           onChange={(e) => appliquer("objectif", e.target.value)}
           className={selectClasse}
         >
-          <option value="">Vendre ou louer</option>
+          <option value="">À vendre ou à louer</option>
           <option value="vente">À vendre</option>
           <option value="location">À louer</option>
         </select>
@@ -65,19 +69,19 @@ export default function FiltresVitrine({ villes }: { villes: VilleOption[] }) {
       </div>
 
       <div>
-        <label htmlFor="f-ville" className={labelClasse}>
-          Ville
+        <label htmlFor="f-zone" className={labelClasse}>
+          Zone
         </label>
         <select
-          id="f-ville"
-          value={searchParams.get("ville") ?? ""}
-          onChange={(e) => appliquer("ville", e.target.value)}
+          id="f-zone"
+          value={searchParams.get("zone") ?? ""}
+          onChange={(e) => appliquer("zone", e.target.value)}
           className={selectClasse}
         >
-          <option value="">Toutes les villes</option>
-          {villes.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.nom}
+          <option value="">Toutes les zones</option>
+          {zones.map((z) => (
+            <option key={z.id} value={z.id}>
+              {z.villeNom ? `${z.nom} · ${z.villeNom}` : z.nom}
             </option>
           ))}
         </select>
