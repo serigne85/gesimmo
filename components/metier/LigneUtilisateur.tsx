@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Power, Trash2 } from "lucide-react";
+import { Check, Pencil, Power, Trash2, X } from "lucide-react";
 import { ROLES, ROLE_LABELS, type Role } from "@/types/roles";
 import type { UtilisateurListe } from "@/types/utilisateur";
 import {
   basculerActif,
   changerRole,
+  modifierTelephone,
   supprimerUtilisateur,
 } from "@/services/utilisateurs-actions";
 
@@ -26,6 +27,8 @@ type Props = {
 export default function LigneUtilisateur({ utilisateur, estSoiMeme }: Props) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  // Édition inline du téléphone : `editPhone` = brouillon en cours, ou null si fermé.
+  const [editPhone, setEditPhone] = useState<string | null>(null);
 
   function handleToggleActif() {
     startTransition(async () => {
@@ -49,6 +52,16 @@ export default function LigneUtilisateur({ utilisateur, estSoiMeme }: Props) {
     });
   }
 
+  function handleSavePhone() {
+    const value = editPhone ?? "";
+    startTransition(async () => {
+      const res = await modifierTelephone(utilisateur.id, value);
+      setError(res.error);
+      // On ne referme le champ que si l'enregistrement a réussi.
+      if (!res.error) setEditPhone(null);
+    });
+  }
+
   return (
     <li className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       {/* Identité + statut */}
@@ -67,9 +80,60 @@ export default function LigneUtilisateur({ utilisateur, estSoiMeme }: Props) {
             {utilisateur.actif ? "Actif" : "Inactif"}
           </span>
         </div>
-        <p className="truncate text-sm text-zinc-500 dark:text-zinc-400">
-          {utilisateur.email}
-        </p>
+        {editPhone === null ? (
+          <div className="flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400">
+            <span className="truncate">{utilisateur.email}</span>
+            {utilisateur.telephone ? (
+              <span className="shrink-0">· {utilisateur.telephone}</span>
+            ) : (
+              <span className="shrink-0 italic text-zinc-400">· sans téléphone</span>
+            )}
+            <button
+              type="button"
+              onClick={() => setEditPhone(utilisateur.telephone ?? "")}
+              disabled={isPending}
+              title="Modifier le téléphone"
+              className="shrink-0 rounded p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-40 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+            >
+              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <input
+              type="tel"
+              autoFocus
+              value={editPhone}
+              onChange={(e) => setEditPhone(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSavePhone();
+                if (e.key === "Escape") setEditPhone(null);
+              }}
+              disabled={isPending}
+              aria-label={`Téléphone de ${utilisateur.nomComplet}`}
+              placeholder="77 123 45 67"
+              className="w-40 rounded-md border border-zinc-300 px-2 py-1 text-sm text-zinc-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+            />
+            <button
+              type="button"
+              onClick={handleSavePhone}
+              disabled={isPending}
+              title="Enregistrer"
+              className="rounded-md p-1.5 text-green-600 hover:bg-green-50 disabled:opacity-40 dark:hover:bg-green-950"
+            >
+              <Check className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditPhone(null)}
+              disabled={isPending}
+              title="Annuler"
+              className="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-100 disabled:opacity-40 dark:hover:bg-zinc-800"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        )}
         {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       </div>
 

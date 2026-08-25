@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/auth/guards";
-import { creerUtilisateurSchema } from "@/lib/validation/utilisateur";
+import {
+  creerUtilisateurSchema,
+  telephoneUtilisateurSchema,
+} from "@/lib/validation/utilisateur";
 import type { Role } from "@/types/roles";
 
 /**
@@ -53,6 +56,7 @@ export async function creerUtilisateur(
   const parsed = creerUtilisateurSchema.safeParse({
     nomComplet: formData.get("nomComplet"),
     email: formData.get("email"),
+    telephone: formData.get("telephone"),
     role: formData.get("role"),
     password: formData.get("password"),
   });
@@ -61,7 +65,7 @@ export async function creerUtilisateur(
     return { error: parsed.error.issues[0]?.message ?? "Données invalides.", success: null };
   }
 
-  const { nomComplet, email, role, password } = parsed.data;
+  const { nomComplet, email, telephone, role, password } = parsed.data;
   const supabase = createAdminClient();
 
   // 1. Créer le compte d'authentification (email_confirm : connexion immédiate).
@@ -87,6 +91,7 @@ export async function creerUtilisateur(
     agence_id: admin.agenceId,
     nom_complet: nomComplet,
     email,
+    telephone,
     role,
   });
 
@@ -160,6 +165,45 @@ export async function changerRole(
   const { error } = await supabase
     .from("utilisateurs")
     .update({ role })
+    .eq("id", userId);
+
+  if (error) return { error: "Mise à jour impossible." };
+
+  revalidatePath("/utilisateurs");
+  return { error: null };
+}
+
+/**
+ * Modifie le téléphone d'un utilisateur (permet aussi de compléter les comptes
+ * créés avant l'ajout de la colonne). Contrairement au rôle ou au statut, un
+ * admin PEUT modifier son propre téléphone.
+ */
+export async function modifierTelephone(
+  userId: string,
+  telephone: string
+): Promise<{ error: string | null }> {
+  let admin;
+  try {
+    admin = await requireAdmin();
+  } catch {
+    return { error: "Accès refusé." };
+  }
+
+  const parsed = telephoneUtilisateurSchema.safeParse(telephone);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Numéro invalide." };
+  }
+
+  try {
+    await chargerCibleMemeAgence(userId, admin.agenceId);
+  } catch {
+    return { error: "Utilisateur introuvable dans votre agence." };
+  }
+
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("utilisateurs")
+    .update({ telephone: parsed.data })
     .eq("id", userId);
 
   if (error) return { error: "Mise à jour impossible." };

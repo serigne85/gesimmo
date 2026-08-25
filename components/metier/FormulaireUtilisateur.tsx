@@ -54,6 +54,20 @@ export default function FormulaireUtilisateur({ onSuccess }: Props) {
           <input id="email" name="email" type="email" required className={champClasse} />
         </div>
         <div>
+          <label htmlFor="telephone" className={labelClasse}>
+            Téléphone
+          </label>
+          <input
+            id="telephone"
+            name="telephone"
+            type="tel"
+            required
+            autoComplete="tel"
+            placeholder="77 123 45 67"
+            className={champClasse}
+          />
+        </div>
+        <div>
           <label htmlFor="role" className={labelClasse}>
             Rôle
           </label>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { LogOut, Menu, Search } from "lucide-react";
 import { deconnexion } from "@/services/auth-actions";
 
@@ -55,14 +56,21 @@ export default function Topbar({ onOpenMenu, userName }: TopbarProps) {
         />
       </div>
 
-      {/* Zone profil : initiales, nom, et déconnexion */}
+      {/* Zone profil : initiales + nom (lien vers le compte), et déconnexion */}
       <div className="ml-auto flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-900 text-sm font-medium text-white">
-          {getInitials(userName)}
-        </div>
-        <span className="hidden text-sm font-medium text-zinc-700 sm:inline dark:text-zinc-200">
-          {userName}
-        </span>
+        {/* Le nom mène à la page de gestion de son propre mot de passe. */}
+        <Link
+          href="/mon-compte/mot-de-passe"
+          title="Mon compte"
+          className="flex items-center gap-3 rounded-md p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+        >
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-900 text-sm font-medium text-white">
+            {getInitials(userName)}
+          </div>
+          <span className="hidden text-sm font-medium text-zinc-700 sm:inline dark:text-zinc-200">
+            {userName}
+          </span>
+        </Link>
         {/* La déconnexion est une Server Action : un <form> l'appelle sans API. */}
         <form action={deconnexion}>
           <button

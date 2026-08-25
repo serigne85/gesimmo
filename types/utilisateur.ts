@@ -15,6 +15,8 @@ export type UtilisateurListe = {
   id: string;
   nomComplet: string;
   email: string;
+  /** Nullable : les comptes antérieurs à l'ajout de la colonne n'en ont pas. */
+  telephone: string | null;
   role: Role;
   actif: boolean;
 };

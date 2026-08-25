@@ -17,7 +17,7 @@ export async function listUtilisateurs(
 
   const { data, error } = await supabase
     .from("utilisateurs")
-    .select("id, nom_complet, email, role, actif")
+    .select("id, nom_complet, email, telephone, role, actif")
     .eq("agence_id", agenceId)
     .is("supprime_le", null)
     .order("nom_complet", { ascending: true });
@@ -30,6 +30,7 @@ export async function listUtilisateurs(
     id: u.id,
     nomComplet: u.nom_complet,
     email: u.email,
+    telephone: u.telephone,
     role: u.role,
     actif: u.actif,
   }));
