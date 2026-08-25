@@ -111,7 +111,7 @@ export async function getBienById(id: string): Promise<BienDetail | null> {
     .from("biens")
     .select(
       "id, reference, titre, type, objectif, statut, zone_id, date_relance, statut_juridique, prix, " +
-        "description, video_url, adresse, nombre_chambres, surface_m2, cree_le, " +
+        "description, video_url, adresse, nombre_chambres, surface_m2, cree_le, publie, publie_le, " +
         "zones(nom, villes(nom)), " +
         "proprietaire:contacts!proprietaire_id(nom_complet, telephone), " +
         "contact:contacts!contact_id(nom_complet, telephone)"
@@ -152,6 +152,8 @@ export async function getBienById(id: string): Promise<BienDetail | null> {
     contactNom: (contact?.nom_complet as string | undefined) ?? null,
     contactTelephone: (contact?.telephone as string | undefined) ?? null,
     creeLe: b.cree_le as string,
+    publie: (b.publie as boolean | null) ?? false,
+    publieLe: (b.publie_le as string | null) ?? null,
   };
 }
 

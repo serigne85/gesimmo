@@ -12,6 +12,7 @@ import {
 import { formatFcfa, formatDate, telHref, whatsappHref } from "@/lib/utils/format";
 import BadgeStatutBien from "@/components/metier/BadgeStatutBien";
 import ActionsStatutBien from "@/components/metier/ActionsStatutBien";
+import BoutonPublication from "@/components/metier/BoutonPublication";
 import GaleriePhotos from "@/components/metier/GaleriePhotos";
 import LigneDemande from "@/components/metier/LigneDemande";
 
@@ -139,6 +140,19 @@ export default async function BienDetailPage({
           id={bien.id}
           statut={bien.statut}
           objectif={bien.objectif}
+        />
+      </div>
+
+      {/* Publication sur le site vitrine */}
+      <div className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <h2 className="mb-3 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          Site public
+        </h2>
+        <BoutonPublication
+          id={bien.id}
+          statut={bien.statut}
+          publie={bien.publie}
+          publieLe={bien.publieLe}
         />
       </div>
 

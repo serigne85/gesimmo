@@ -241,6 +241,56 @@ export async function changerStatutBien(
   redirect(`/biens/${id}`);
 }
 
+/**
+ * Publie ou retire un bien du site vitrine. Un bien n'est visible publiquement
+ * que s'il est `disponible` ET `publie` — on ne peut donc PUBLIER qu'un bien
+ * disponible (le dépublier reste possible dans tous les cas). Contrôle côté
+ * serveur : masquer le bouton ne suffit pas. On revalide aussi les pages
+ * publiques pour que le site reflète le changement immédiatement.
+ */
+export async function definirPublicationBien(
+  id: string,
+  _prevState: CreerBienState,
+  formData: FormData
+): Promise<CreerBienState> {
+  const profil = await getUtilisateurConnecte();
+  if (!profil || !profil.actif) return { error: "Accès refusé." };
+
+  const publier = formData.get("publier") === "1";
+  const supabase = await createClient();
+
+  const { data: courant } = await supabase
+    .from("biens")
+    .select("statut")
+    .eq("id", id)
+    .is("supprime_le", null)
+    .maybeSingle();
+
+  if (!courant) return { error: "Bien introuvable." };
+
+  if (publier && (courant.statut as StatutBien) !== "disponible") {
+    return { error: "Seul un bien « Disponible » peut être publié." };
+  }
+
+  const { error } = await supabase
+    .from("biens")
+    .update({
+      publie: publier,
+      publie_le: publier ? new Date().toISOString() : null,
+    })
+    .eq("id", id)
+    .is("supprime_le", null);
+
+  if (error) return { error: "Mise à jour de la publication impossible." };
+
+  revalidatePath("/biens");
+  revalidatePath(`/biens/${id}`);
+  // Site public : la liste et la fiche doivent refléter le changement.
+  revalidatePath("/nos-biens");
+  revalidatePath(`/nos-biens/${id}`);
+  return { error: null };
+}
+
 export type SupprimerBiensState = { error: string | null };
 
 /**

@@ -3,6 +3,19 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseEnv } from "./env";
 
 /**
+ * Routes accessibles sans authentification. Le site vitrine (accueil "/",
+ * "/nos-biens", "/contact") est public ; "/connexion" l'est aussi. Ajouter une
+ * page publique = ajouter son chemin ici.
+ */
+const PUBLIC_ROUTES = [
+  "/",
+  "/connexion",
+  "/nos-biens",
+  "/contact",
+  "/api/vitrine", // route-image publique (photos des biens pour les aperçus)
+];
+
+/**
  * Rafraîchit la session Supabase à chaque requête et protège les routes.
  *
  * Appelé depuis proxy.ts (ex-middleware, renommé en Next.js 16). Rôle double :
@@ -37,8 +50,14 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Routes publiques : tout ce qui commence par /connexion.
-  const isPublicRoute = request.nextUrl.pathname.startsWith("/connexion");
+  // Routes accessibles sans être connecté : la connexion + tout le site vitrine
+  // public (accueil, liste des biens, contact). On compare par égalité exacte ou
+  // par préfixe « /route/ » — surtout PAS un simple startsWith("/contact"), qui
+  // rendrait la page interne "/contacts" publique par accident.
+  const path = request.nextUrl.pathname;
+  const isPublicRoute = PUBLIC_ROUTES.some(
+    (route) => path === route || path.startsWith(`${route}/`)
+  );
 
   if (!user && !isPublicRoute) {
     const redirectUrl = request.nextUrl.clone();

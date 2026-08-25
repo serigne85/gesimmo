@@ -19,6 +19,28 @@
   }
 }
 
+/*
+ * Palette du SITE VITRINE (public), volontairement distincte de l'ERP interne.
+ * L'ERP est utilitaire (gris zinc) ; la vitrine est chaleureuse (sable +
+ * terracotta) car elle s'adresse au client, pas à l'agent. Ces tokens ajoutent
+ * simplement de nouvelles utilitaires Tailwind (bg-sable-50, text-terracotta-600,
+ * font-display…) sans rien changer aux pages existantes.
+ */
+@theme {
+  --color-sable-50: #faf6f0;
+  --color-sable-100: #f3ede3;
+  --color-sable-200: #e7dccb;
+
+  --color-terracotta-500: #c2703d;
+  --color-terracotta-600: #a85c2e;
+
+  --color-bleu-profond: #1e3a5f;
+  --color-bleu-profond-hover: #16304f;
+
+  /* Police d'affichage pour les titres (définie dans le layout du site). */
+  --font-display: var(--font-fraunces);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

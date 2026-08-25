@@ -169,4 +169,6 @@ export type BienDetail = {
   contactNom: string | null;
   contactTelephone: string | null;
   creeLe: string;
+  publie: boolean;
+  publieLe: string | null;
 };
