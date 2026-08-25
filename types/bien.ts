@@ -21,7 +21,9 @@ export type StatutBien =
   | "vendu"
   | "loue"
   | "suspendu"
-  | "archive";
+  | "archive"
+  | "perdu"
+  | "a_relancer";
 
 export type StatutJuridique =
   | "titre_foncier"
@@ -82,7 +84,24 @@ export const STATUT_BIEN_LABELS: Record<StatutBien, string> = {
   loue: "Loué",
   suspendu: "Suspendu",
   archive: "Archivé",
+  perdu: "Perdu",
+  a_relancer: "À relancer",
 };
+
+/**
+ * Statuts proposés au moment de la création d'un bien (dans l'ordre voulu).
+ * Les autres statuts (sous_offre, suspendu, archive) restent atteignables plus
+ * tard via la machine à états, sur la fiche du bien.
+ */
+export const STATUTS_CREATION_BIEN: StatutBien[] = [
+  "prospecte",
+  "disponible",
+  "sous_mandat",
+  "vendu",
+  "loue",
+  "perdu",
+  "a_relancer",
+];
 
 export const STATUT_JURIDIQUE_LABELS: Record<StatutJuridique, string> = {
   titre_foncier: "Titre foncier",
@@ -96,6 +115,7 @@ export const STATUT_JURIDIQUE_LABELS: Record<StatutJuridique, string> = {
 export type BienListe = {
   id: string;
   reference: string;
+  titre: string | null;
   type: TypeBien;
   objectif: ObjectifBien;
   statut: StatutBien;
@@ -104,34 +124,48 @@ export type BienListe = {
   prix: number | null;
   proprietaireNom: string;
   proprietaireTelephone: string;
+  photoPrincipaleUrl: string | null;
 };
 
 /** Valeurs brutes d'un bien pour pré-remplir le formulaire d'édition. */
 export type BienEdition = {
   id: string;
   reference: string;
+  titre: string | null;
   type: TypeBien;
   objectif: ObjectifBien;
   villeId: string;
   zoneId: string;
+  adresse: string | null;
+  nombreChambres: number | null;
+  surface: number | null; // en m²
   statutJuridique: StatutJuridique | null;
   prix: number | null;
   description: string | null;
+  videoUrl: string | null;
 };
 
 /** Fiche détail complète d'un bien (avec libellés et propriétaire joints). */
 export type BienDetail = {
   id: string;
   reference: string;
+  titre: string | null;
   type: TypeBien;
   objectif: ObjectifBien;
   statut: StatutBien;
+  dateRelance: string | null;
   statutJuridique: StatutJuridique | null;
   prix: number | null;
   description: string | null;
+  videoUrl: string | null;
+  adresse: string | null;
+  nombreChambres: number | null;
+  surface: number | null; // en m²
   zoneNom: string | null;
   villeNom: string | null;
   proprietaireNom: string;
   proprietaireTelephone: string;
+  contactNom: string | null;
+  contactTelephone: string | null;
   creeLe: string;
 };

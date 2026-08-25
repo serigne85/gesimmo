@@ -3,7 +3,11 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { listZones } from "@/services/reference";
 import { getBienEdition } from "@/services/biens";
+import { getPhotosBien } from "@/services/photos";
+import { getUtilisateurConnecte } from "@/services/auth";
+import { peutGererReference } from "@/types/roles";
 import FormulaireBien from "@/components/metier/FormulaireBien";
+import GaleriePhotos from "@/components/metier/GaleriePhotos";
 
 /**
  * Écran d'édition d'un bien. Server Component : on charge en parallèle les zones
@@ -15,11 +19,18 @@ export default async function ModifierBienPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [zones, bien] = await Promise.all([listZones(), getBienEdition(id)]);
+  const [zones, bien, profil] = await Promise.all([
+    listZones(),
+    getBienEdition(id),
+    getUtilisateurConnecte(),
+  ]);
   if (!bien) notFound();
 
+  const peutAjouterReference = !!profil && peutGererReference(profil.role);
+  const photos = await getPhotosBien(bien.id);
+
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="mx-auto max-w-5xl space-y-4">
       <Link
         href={`/biens/${bien.id}`}
         className="inline-flex items-center gap-1 text-sm text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
@@ -38,7 +49,12 @@ export default async function ModifierBienPage({
       </div>
 
       <div className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <FormulaireBien zones={zones} bien={bien} />
+        <FormulaireBien
+          zones={zones}
+          bien={bien}
+          photosSlot={<GaleriePhotos bienId={bien.id} photos={photos} />}
+          peutAjouterReference={peutAjouterReference}
+        />
       </div>
     </div>
   );

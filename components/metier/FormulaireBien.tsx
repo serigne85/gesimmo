@@ -1,12 +1,14 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
 import {
-  TYPES_BIEN,
-  TYPE_BIEN_LABELS,
-  type ObjectifBien,
-  type BienEdition,
-} from "@/types/bien";
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { useRouter } from "next/navigation";
+import { type ObjectifBien, type BienEdition } from "@/types/bien";
 import type { ZoneOption } from "@/services/reference";
 import {
   creerBien,
@@ -14,40 +16,82 @@ import {
   type CreerBienState,
 } from "@/services/biens-actions";
 import { champClasse, labelClasse } from "./champsBien";
-import ChampsBienOptionnels from "./ChampsBienOptionnels";
+import ChampsCaracteristiques from "./ChampsCaracteristiques";
+import ChampsLocalisation from "./ChampsLocalisation";
+import ChampsContactsBien from "./ChampsContactsBien";
+import SelecteurPhotos, { type SelecteurPhotosHandle } from "./SelecteurPhotos";
 
 const initialState: CreerBienState = { error: null };
 
 /**
  * Formulaire de bien, deux modes : `bien` absent = création, `bien` présent =
- * édition (champs pré-remplis). En édition, le propriétaire n'est pas modifiable
- * ici (contact partagé, géré depuis le module Contacts).
+ * édition (champs pré-remplis). En édition, les contacts et les photos ne sont
+ * pas ici (ils se gèrent depuis la fiche / le module Contacts).
  */
 export default function FormulaireBien({
   zones,
   bien,
+  photosSlot,
+  peutAjouterReference = false,
 }: {
   zones: ZoneOption[];
   bien?: BienEdition;
+  /** Galerie de photos affichée avant le bouton (édition : le bien existe). */
+  photosSlot?: ReactNode;
+  /** Autorise l'ajout de ville/zone à la volée (admin/direction). */
+  peutAjouterReference?: boolean;
 }) {
   const isEdition = !!bien;
   const action = isEdition ? modifierBien.bind(null, bien.id) : creerBien;
   const [state, formAction, isPending] = useActionState(action, initialState);
 
-  // Villes distinctes déduites des zones (pour la cascade ville → zone).
-  const villes = useMemo(() => {
-    const map = new Map<string, string>();
-    zones.forEach((z) => map.set(z.villeId, z.villeNom));
-    return Array.from(map, ([id, nom]) => ({ id, nom }));
-  }, [zones]);
+  const router = useRouter();
+  const photosRef = useRef<SelecteurPhotosHandle>(null);
+  const [envoiPhotos, setEnvoiPhotos] = useState(false);
+  const [erreurPhotos, setErreurPhotos] = useState<string | null>(null);
 
-  const [villeId, setVilleId] = useState(bien?.villeId ?? villes[0]?.id ?? "");
   const [objectif, setObjectif] = useState<ObjectifBien>(bien?.objectif ?? "vente");
 
-  const zonesFiltrees = zones.filter((z) => z.villeId === villeId);
+  // Après création, le bien existe : on envoie les photos en attente (upload
+  // différé) puis on file sur sa fiche. Si un envoi échoue, le bien est déjà
+  // créé — on va quand même sur sa fiche pour ne pas le perdre, avec un message.
+  useEffect(() => {
+    const bienId = state.bienId;
+    if (!bienId) return;
+
+    (async () => {
+      if (photosRef.current && photosRef.current.count() > 0) {
+        setEnvoiPhotos(true);
+        const err = await photosRef.current.uploadTo(bienId);
+        setEnvoiPhotos(false);
+        if (err) {
+          setErreurPhotos(
+            "Bien créé, mais l'envoi d'une photo a échoué. Ajoutez-les depuis sa fiche."
+          );
+        }
+      }
+      router.push(`/biens/${bienId}`);
+    })();
+  }, [state.bienId, router]);
 
   return (
     <form action={formAction} className="space-y-5">
+      {/* Titre */}
+      <div>
+        <label htmlFor="titre" className={labelClasse}>
+          Titre du bien <span className="text-zinc-400">(optionnel)</span>
+        </label>
+        <input
+          id="titre"
+          name="titre"
+          type="text"
+          maxLength={150}
+          placeholder="Ex. Villa R+1 avec piscine, Almadies"
+          defaultValue={bien?.titre ?? ""}
+          className={champClasse}
+        />
+      </div>
+
       {/* Objectif : 2 options → boutons (CLAUDE.md) */}
       <div>
         <span className={labelClasse}>Objectif</span>
@@ -70,92 +114,49 @@ export default function FormulaireBien({
         </div>
       </div>
 
-      {/* Type */}
-      <div>
-        <label htmlFor="type" className={labelClasse}>
-          Type de bien
-        </label>
-        <select
-          id="type"
-          name="type"
-          required
-          defaultValue={bien?.type ?? "appartement"}
-          className={champClasse}
-        >
-          {TYPES_BIEN.map((t) => (
-            <option key={t} value={t}>
-              {TYPE_BIEN_LABELS[t]}
-            </option>
-          ))}
-        </select>
+      {/* Type, surface, chambres, statut juridique, prix, description */}
+      <ChampsCaracteristiques bien={bien} />
+
+      {/* Ville, zone, adresse (avec ajout de ville/zone à la volée) */}
+      <ChampsLocalisation
+        zones={zones}
+        defaultVilleId={bien?.villeId}
+        defaultZoneId={bien?.zoneId}
+        defaultAdresse={bien?.adresse}
+        peutAjouter={peutAjouterReference}
+      />
+
+      {/* Médias : lien vidéo + photos regroupés. Le champ vidéo est présent dans
+          les deux modes ; les photos diffèrent (sélecteur en création avec upload
+          différé, galerie GaleriePhotos en édition). */}
+      <div className="space-y-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+        <div>
+          <label htmlFor="videoUrl" className={labelClasse}>
+            Lien vidéo <span className="text-zinc-400">(optionnel)</span>
+          </label>
+          <input
+            id="videoUrl"
+            name="videoUrl"
+            type="url"
+            maxLength={500}
+            placeholder="https://youtube.com/..."
+            defaultValue={bien?.videoUrl ?? ""}
+            className={champClasse}
+          />
+        </div>
+
+        {!isEdition && (
+          <SelecteurPhotos ref={photosRef} disabled={isPending || envoiPhotos} />
+        )}
+        {photosSlot}
       </div>
 
-      {/* Ville + zone */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="ville" className={labelClasse}>
-            Ville
-          </label>
-          <select
-            id="ville"
-            value={villeId}
-            onChange={(e) => setVilleId(e.target.value)}
-            className={champClasse}
-          >
-            {villes.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.nom}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="zoneId" className={labelClasse}>
-            Zone
-          </label>
-          <select
-            id="zoneId"
-            name="zoneId"
-            required
-            defaultValue={bien?.zoneId}
-            className={champClasse}
-          >
-            {zonesFiltrees.map((z) => (
-              <option key={z.id} value={z.id}>
-                {z.nom}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Propriétaire : saisi à la création seulement (contact partagé). */}
+      {/* Propriétaire + contact secondaire : à la création seulement. */}
       {!isEdition && (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="proprietaireNom" className={labelClasse}>
-              Nom du propriétaire
-            </label>
-            <input id="proprietaireNom" name="proprietaireNom" type="text" required className={champClasse} />
-          </div>
-          <div>
-            <label htmlFor="proprietaireTelephone" className={labelClasse}>
-              Téléphone du propriétaire
-            </label>
-            <input
-              id="proprietaireTelephone"
-              name="proprietaireTelephone"
-              type="tel"
-              required
-              placeholder="77 123 45 67"
-              className={champClasse}
-            />
-          </div>
+        <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
+          <ChampsContactsBien />
         </div>
       )}
-
-      {/* Détails optionnels repliés (sinon les agents cessent de saisir) */}
-      <ChampsBienOptionnels bien={bien} defaultOpen={isEdition} />
 
       {state.error && (
         <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
@@ -163,16 +164,24 @@ export default function FormulaireBien({
         </p>
       )}
 
+      {erreurPhotos && (
+        <p role="alert" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+          {erreurPhotos}
+        </p>
+      )}
+
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isPending || envoiPhotos}
         className="w-full rounded-md bg-blue-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-800 disabled:opacity-60 sm:w-auto"
       >
-        {isPending
-          ? "Enregistrement…"
-          : isEdition
-            ? "Enregistrer les modifications"
-            : "Enregistrer le bien"}
+        {envoiPhotos
+          ? "Envoi des photos…"
+          : isPending
+            ? "Enregistrement…"
+            : isEdition
+              ? "Enregistrer les modifications"
+              : "Enregistrer le bien"}
       </button>
     </form>
   );

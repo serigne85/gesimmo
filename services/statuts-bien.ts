@@ -7,18 +7,20 @@ import type { StatutBien, ObjectifBien } from "@/types/bien";
  * figer un bien sur une fausse manœuvre.
  */
 const TRANSITIONS: Record<StatutBien, StatutBien[]> = {
-  prospecte: ["sous_mandat", "disponible", "suspendu", "archive"],
-  sous_mandat: ["disponible", "suspendu", "archive"],
-  disponible: ["sous_offre", "suspendu", "archive"],
+  prospecte: ["sous_mandat", "disponible", "a_relancer", "suspendu", "perdu", "archive"],
+  a_relancer: ["prospecte", "sous_mandat", "disponible", "perdu", "archive"],
+  sous_mandat: ["disponible", "suspendu", "perdu", "archive"],
+  disponible: ["sous_offre", "suspendu", "perdu", "archive"],
   sous_offre: ["vendu", "loue", "disponible", "suspendu", "archive"],
   vendu: ["archive"],
   loue: ["disponible", "archive"],
   suspendu: ["disponible", "archive"],
+  perdu: ["prospecte", "archive"],
   archive: ["prospecte"],
 };
 
 /** Transitions lourdes : on demande confirmation avant de les appliquer. */
-export const STATUTS_A_CONFIRMER: StatutBien[] = ["vendu", "loue", "archive"];
+export const STATUTS_A_CONFIRMER: StatutBien[] = ["vendu", "loue", "perdu", "archive"];
 
 /**
  * Statuts vers lesquels un bien peut basculer, filtrés selon l'objectif :

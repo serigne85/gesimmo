@@ -9,7 +9,7 @@ import { creerBienSchema, modifierBienSchema } from "@/lib/validation/bien";
 import { transitionAutorisee } from "@/services/statuts-bien";
 import type { StatutBien, ObjectifBien } from "@/types/bien";
 
-export type CreerBienState = { error: string | null };
+export type CreerBienState = { error: string | null; bienId?: string };
 
 /**
  * Crée un bien à partir de la saisie rapide.
@@ -31,9 +31,18 @@ export async function creerBien(
     zoneId: formData.get("zoneId"),
     proprietaireNom: formData.get("proprietaireNom"),
     proprietaireTelephone: formData.get("proprietaireTelephone"),
+    statut: formData.get("statut") || undefined,
+    dateRelance: formData.get("dateRelance") || undefined,
+    titre: formData.get("titre") || undefined,
+    contactNom: formData.get("contactNom") || undefined,
+    contactTelephone: formData.get("contactTelephone") || undefined,
+    adresse: formData.get("adresse") || undefined,
+    nombreChambres: formData.get("nombreChambres") || undefined,
+    surface: formData.get("surface") || undefined,
     statutJuridique: formData.get("statutJuridique") || undefined,
     prix: formData.get("prix") || undefined,
     description: formData.get("description") || undefined,
+    videoUrl: formData.get("videoUrl") || undefined,
   });
 
   if (!parsed.success) {
@@ -56,6 +65,24 @@ export async function creerBien(
     return { error: "Enregistrement du propriétaire impossible." };
   }
 
+  // 1 bis. Contact secondaire (optionnel). Les deux champs vont de pair.
+  let contactId: string | null = null;
+  if (d.contactNom || d.contactTelephone) {
+    if (!d.contactNom || !d.contactTelephone || d.contactTelephone.length < 6) {
+      return { error: "Contact secondaire incomplet : nom et téléphone requis." };
+    }
+    try {
+      contactId = await trouverOuCreerContact(
+        supabase,
+        profil.agenceId,
+        d.contactNom,
+        d.contactTelephone
+      );
+    } catch {
+      return { error: "Enregistrement du contact impossible." };
+    }
+  }
+
   // 2. Référence unique. On part du nombre de biens existants et on réessaie
   //    en cas de collision (une référence peut être occupée par un bien
   //    supprimé, invisible via la RLS).
@@ -65,33 +92,46 @@ export async function creerBien(
   const base = (count ?? 0) + 1;
   const annee = new Date().getFullYear();
 
-  let insere = false;
-  for (let i = 0; i < 6 && !insere; i++) {
+  let bienId: string | null = null;
+  for (let i = 0; i < 6 && !bienId; i++) {
     const reference = `BN-${annee}-${String(base + i).padStart(4, "0")}`;
-    const { error } = await supabase.from("biens").insert({
-      agence_id: profil.agenceId,
-      reference,
-      type: d.type,
-      objectif: d.objectif,
-      zone_id: d.zoneId,
-      proprietaire_id: proprietaireId,
-      statut_juridique: d.statutJuridique ?? null,
-      prix: d.prix,
-      description: d.description ?? null,
-    });
+    const { data, error } = await supabase
+      .from("biens")
+      .insert({
+        agence_id: profil.agenceId,
+        reference,
+        titre: d.titre ?? null,
+        type: d.type,
+        objectif: d.objectif,
+        zone_id: d.zoneId,
+        proprietaire_id: proprietaireId,
+        contact_id: contactId,
+        adresse: d.adresse ?? null,
+        nombre_chambres: d.nombreChambres,
+        surface_m2: d.surface,
+        statut_juridique: d.statutJuridique ?? null,
+        prix: d.prix,
+        description: d.description ?? null,
+        video_url: d.videoUrl ?? null,
+      })
+      .select("id")
+      .single();
 
-    if (!error) {
-      insere = true;
-    } else if (error.code !== "23505") {
+    if (!error && data) {
+      bienId = data.id;
+    } else if (error && error.code !== "23505") {
       // Autre erreur que le doublon de référence : on abandonne.
       return { error: "Enregistrement du bien impossible." };
     }
   }
 
-  if (!insere) return { error: "Génération de la référence impossible." };
+  if (!bienId) return { error: "Génération de la référence impossible." };
 
   revalidatePath("/biens");
-  redirect("/biens");
+  // Pas de redirection ici : on renvoie l'id au formulaire, qui envoie d'abord
+  // les photos éventuelles (elles ont besoin de ce bien_id) puis navigue vers
+  // la fiche. C'est l'upload différé (staging) — voir SelecteurPhotos.
+  return { error: null, bienId };
 }
 
 /**
@@ -111,9 +151,14 @@ export async function modifierBien(
     type: formData.get("type"),
     objectif: formData.get("objectif"),
     zoneId: formData.get("zoneId"),
+    titre: formData.get("titre") || undefined,
+    adresse: formData.get("adresse") || undefined,
+    nombreChambres: formData.get("nombreChambres") || undefined,
+    surface: formData.get("surface") || undefined,
     statutJuridique: formData.get("statutJuridique") || undefined,
     prix: formData.get("prix") || undefined,
     description: formData.get("description") || undefined,
+    videoUrl: formData.get("videoUrl") || undefined,
   });
 
   if (!parsed.success) {
@@ -126,12 +171,17 @@ export async function modifierBien(
   const { data, error } = await supabase
     .from("biens")
     .update({
+      titre: d.titre ?? null,
       type: d.type,
       objectif: d.objectif,
       zone_id: d.zoneId,
+      adresse: d.adresse ?? null,
+      nombre_chambres: d.nombreChambres,
+      surface_m2: d.surface,
       statut_juridique: d.statutJuridique ?? null,
       prix: d.prix,
       description: d.description ?? null,
+      video_url: d.videoUrl ?? null,
     })
     .eq("id", id)
     .is("supprime_le", null)

@@ -11,8 +11,10 @@ const COULEURS: Record<StatutBien, string> = {
   sous_mandat: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
   sous_offre: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
   suspendu: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
+  a_relancer: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
   vendu: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
   loue: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+  perdu: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300",
   archive: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
 };
 
