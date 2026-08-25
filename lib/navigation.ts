@@ -4,6 +4,7 @@ import {
   Users,
   FileSignature,
   Target,
+  Search,
   ListTodo,
   Calendar,
   KeyRound,
@@ -60,6 +61,12 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Mandats",
     href: "/mandats",
     icon: FileSignature,
+    roles: ["admin", "direction", "agent", "gestionnaire"],
+  },
+  {
+    label: "Demandes",
+    href: "/demandes",
+    icon: Search,
     roles: ["admin", "direction", "agent", "gestionnaire"],
   },
   {

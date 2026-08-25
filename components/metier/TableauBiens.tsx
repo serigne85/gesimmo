@@ -120,12 +120,23 @@ function LigneBien({ bien }: { bien: BienListe }) {
   );
 }
 
-/** Vignette de l'objectif : icône + libellé, en couleurs neutres (le code
- *  couleur vert/ambre/rouge est réservé au cycle de vie). */
+/** Vignette de l'objectif : icône + libellé, avec une couleur distincte par
+ *  objectif. Teintes choisies HORS du code couleur des statuts (vert/ambre/
+ *  rouge/gris/bleu) : beige = vente, sarcelle = location. Beige n'existe pas
+ *  dans la palette Tailwind : on le pose en valeur explicite. */
+const OBJECTIF_COULEURS: Record<BienListe["objectif"], string> = {
+  vente:
+    "bg-[#f5efdf] text-[#7a6a3a] dark:bg-[#3a3320] dark:text-[#e6dcc0]",
+  location:
+    "bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300",
+};
+
 function VignetteObjectif({ objectif }: { objectif: BienListe["objectif"] }) {
   const Icone = objectif === "vente" ? Tag : KeyRound;
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium ${OBJECTIF_COULEURS[objectif]}`}
+    >
       <Icone className="h-3.5 w-3.5" aria-hidden="true" />
       {OBJECTIF_LABELS[objectif]}
     </span>

@@ -7,6 +7,7 @@ import type {
   BienEdition,
   TypeBien,
   StatutBien,
+  ObjectifBien,
 } from "@/types/bien";
 
 export const BIENS_PAGE_SIZE = 20;
@@ -23,6 +24,7 @@ export type FiltresBiens = {
   zoneId?: string;
   type?: TypeBien;
   statut?: StatutBien;
+  objectif?: ObjectifBien;
 };
 
 /** Extrait un objet lié qu'il soit renvoyé comme objet ou comme tableau. */
@@ -59,6 +61,7 @@ export async function listBiens(
   if (filtres.zoneId) query = query.eq("zone_id", filtres.zoneId);
   if (filtres.type) query = query.eq("type", filtres.type);
   if (filtres.statut) query = query.eq("statut", filtres.statut);
+  if (filtres.objectif) query = query.eq("objectif", filtres.objectif);
 
   const { data, count, error } = await query
     .order("cree_le", { ascending: false })
@@ -107,7 +110,7 @@ export async function getBienById(id: string): Promise<BienDetail | null> {
   const { data, error } = await supabase
     .from("biens")
     .select(
-      "id, reference, titre, type, objectif, statut, date_relance, statut_juridique, prix, " +
+      "id, reference, titre, type, objectif, statut, zone_id, date_relance, statut_juridique, prix, " +
         "description, video_url, adresse, nombre_chambres, surface_m2, cree_le, " +
         "zones(nom, villes(nom)), " +
         "proprietaire:contacts!proprietaire_id(nom_complet, telephone), " +
@@ -133,6 +136,7 @@ export async function getBienById(id: string): Promise<BienDetail | null> {
     type: b.type as BienDetail["type"],
     objectif: b.objectif as BienDetail["objectif"],
     statut: b.statut as BienDetail["statut"],
+    zoneId: (b.zone_id as string | null) ?? null,
     dateRelance: (b.date_relance as string | null) ?? null,
     statutJuridique: (b.statut_juridique as BienDetail["statutJuridique"]) ?? null,
     prix: (b.prix as number | null) ?? null,

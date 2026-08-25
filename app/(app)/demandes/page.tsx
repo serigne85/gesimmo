@@ -1,88 +1,98 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { listBiens, BIENS_PAGE_SIZE } from "@/services/biens";
+import { listDemandes, DEMANDES_PAGE_SIZE } from "@/services/demandes";
 import { listZones } from "@/services/reference";
-import { TYPES_BIEN, STATUT_BIEN_LABELS, OBJECTIF_LABELS } from "@/types/bien";
-import type { TypeBien, StatutBien, ObjectifBien } from "@/types/bien";
-import FiltresBiens from "@/components/metier/FiltresBiens";
-import TableauBiens from "@/components/metier/TableauBiens";
+import { TYPES_BIEN } from "@/types/bien";
+import type { TypeBien } from "@/types/bien";
+import {
+  OBJECTIF_DEMANDE_LABELS,
+  STATUT_DEMANDE_LABELS,
+  type ObjectifDemande,
+  type StatutDemande,
+} from "@/types/demande";
+import FiltresDemandes from "@/components/metier/FiltresDemandes";
+import LigneDemande from "@/components/metier/LigneDemande";
 
 /**
- * Liste des biens de l'agence. Server Component : les données sont chargées
- * côté serveur (RLS active), présentées en tableau. Les filtres (zone, type,
- * cycle de vie) et la pagination passent par des paramètres d'URL, si bien que
- * le filtrage est fait en SQL, pas dans le navigateur.
+ * Liste des demandes clients. Server Component : données chargées côté serveur
+ * (RLS active), présentées en lignes bordées. Filtres et pagination via l'URL,
+ * donc le filtrage est fait en base, pas dans le navigateur.
  */
-export default async function BiensPage({
+export default async function DemandesPage({
   searchParams,
 }: {
   searchParams: Promise<{
     page?: string;
+    objectif?: string;
+    statut?: string;
     zone?: string;
     type?: string;
-    statut?: string;
-    objectif?: string;
   }>;
 }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
 
   // On ne retient que des valeurs connues (défense côté serveur).
-  const zoneId = sp.zone || undefined;
+  const objectif =
+    sp.objectif && sp.objectif in OBJECTIF_DEMANDE_LABELS
+      ? (sp.objectif as ObjectifDemande)
+      : undefined;
+  const statut =
+    sp.statut && sp.statut in STATUT_DEMANDE_LABELS
+      ? (sp.statut as StatutDemande)
+      : undefined;
   const type = TYPES_BIEN.includes(sp.type as TypeBien)
     ? (sp.type as TypeBien)
     : undefined;
-  const statut = sp.statut && sp.statut in STATUT_BIEN_LABELS
-    ? (sp.statut as StatutBien)
-    : undefined;
-  const objectif = sp.objectif && sp.objectif in OBJECTIF_LABELS
-    ? (sp.objectif as ObjectifBien)
-    : undefined;
+  const zoneId = sp.zone || undefined;
 
   const [zones, { rows, total }] = await Promise.all([
     listZones(),
-    listBiens(page, { zoneId, type, statut, objectif }),
+    listDemandes(page, { objectif, statut, zoneId, type }),
   ]);
-  const nbPages = Math.max(1, Math.ceil(total / BIENS_PAGE_SIZE));
+  const nbPages = Math.max(1, Math.ceil(total / DEMANDES_PAGE_SIZE));
 
-  // Chaîne de paramètres pour conserver les filtres dans les liens de pagination.
+  // Chaîne de paramètres pour conserver les filtres dans la pagination.
   const paramsBase = new URLSearchParams();
+  if (objectif) paramsBase.set("objectif", objectif);
+  if (statut) paramsBase.set("statut", statut);
   if (zoneId) paramsBase.set("zone", zoneId);
   if (type) paramsBase.set("type", type);
-  if (statut) paramsBase.set("statut", statut);
-  if (objectif) paramsBase.set("objectif", objectif);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-            Biens
+            Demandes
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {total} bien{total > 1 ? "s" : ""} au portefeuille
+            {total} demande{total > 1 ? "s" : ""} client{total > 1 ? "s" : ""}
           </p>
         </div>
         <Link
-          href="/biens/nouveau"
+          href="/demandes/nouveau"
           className="flex items-center gap-2 rounded-md bg-blue-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-800"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
-          Nouveau bien
+          Nouvelle demande
         </Link>
       </div>
 
-      <FiltresBiens zones={zones} />
+      <FiltresDemandes zones={zones} />
 
       {rows.length === 0 ? (
         <div className="rounded-lg border border-dashed border-zinc-300 p-10 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-          Aucun bien ne correspond. Modifiez les filtres ou saisissez-en un.
+          Aucune demande ne correspond. Modifiez les filtres ou enregistrez-en une.
         </div>
       ) : (
-        <TableauBiens biens={rows} />
+        <ul className="divide-y divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+          {rows.map((demande) => (
+            <LigneDemande key={demande.id} demande={demande} />
+          ))}
+        </ul>
       )}
 
-      {/* Pagination */}
       {nbPages > 1 && (
         <div className="flex items-center justify-between text-sm">
           <PaginationLien
@@ -124,7 +134,7 @@ function PaginationLien({
   params.set("page", String(page));
   return (
     <Link
-      href={`/biens?${params.toString()}`}
+      href={`/demandes?${params.toString()}`}
       className="rounded-md border border-zinc-300 px-3 py-1.5 font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
     >
       {label}

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Phone, MessageCircle, Pencil, Video } from "lucide-react";
 import { getBienById } from "@/services/biens";
 import { getPhotosBien } from "@/services/photos";
+import { demandesCorrespondantes } from "@/services/matching";
 import {
   TYPE_BIEN_LABELS,
   OBJECTIF_LABELS,
@@ -12,6 +13,7 @@ import { formatFcfa, formatDate, telHref, whatsappHref } from "@/lib/utils/forma
 import BadgeStatutBien from "@/components/metier/BadgeStatutBien";
 import ActionsStatutBien from "@/components/metier/ActionsStatutBien";
 import GaleriePhotos from "@/components/metier/GaleriePhotos";
+import LigneDemande from "@/components/metier/LigneDemande";
 
 /**
  * Fiche détail d'un bien. Server Component : chargé côté serveur (RLS active).
@@ -27,6 +29,14 @@ export default async function BienDetailPage({
   if (!bien) notFound();
 
   const photos = await getPhotosBien(bien.id);
+  const demandes = await demandesCorrespondantes({
+    objectif: bien.objectif,
+    zoneId: bien.zoneId,
+    type: bien.type,
+    prix: bien.prix,
+    nombreChambres: bien.nombreChambres,
+    surface: bien.surface,
+  });
   const lieu = [bien.zoneNom, bien.villeNom].filter(Boolean).join(", ");
 
   return (
@@ -130,6 +140,24 @@ export default async function BienDetailPage({
           statut={bien.statut}
           objectif={bien.objectif}
         />
+      </div>
+
+      {/* Demandes correspondantes (matching) */}
+      <div className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
+        <h2 className="mb-3 text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          Demandes correspondantes ({demandes.length})
+        </h2>
+        {demandes.length === 0 ? (
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Aucune demande client ne correspond pour l&apos;instant.
+          </p>
+        ) : (
+          <ul className="divide-y divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+            {demandes.map((demande) => (
+              <LigneDemande key={demande.id} demande={demande} />
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Propriétaire */}

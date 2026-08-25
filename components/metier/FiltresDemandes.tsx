@@ -1,28 +1,25 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { TYPES_BIEN, TYPE_BIEN_LABELS } from "@/types/bien";
 import {
-  TYPES_BIEN,
-  TYPE_BIEN_LABELS,
-  STATUT_BIEN_LABELS,
-  OBJECTIF_LABELS,
-  type StatutBien,
-  type ObjectifBien,
-} from "@/types/bien";
+  OBJECTIFS_DEMANDE,
+  OBJECTIF_DEMANDE_LABELS,
+  STATUT_DEMANDE_LABELS,
+  type StatutDemande,
+} from "@/types/demande";
 import type { ZoneOption } from "@/services/reference";
 import { champClasse, labelClasse } from "./champsBien";
 
-const STATUTS: StatutBien[] = Object.keys(STATUT_BIEN_LABELS) as StatutBien[];
-const OBJECTIFS: ObjectifBien[] = Object.keys(OBJECTIF_LABELS) as ObjectifBien[];
+const STATUTS = Object.keys(STATUT_DEMANDE_LABELS) as StatutDemande[];
 
 /**
- * Filtres de la liste des biens : zone, type, cycle de vie. Composant client :
- * il ne fait que piloter l'URL (?zone=&type=&statut=). La page (Server
- * Component) relit ces paramètres et recharge les données filtrées côté serveur
- * — le filtrage reste donc en SQL, avec la RLS. Toute sélection remet la
- * pagination à la page 1.
+ * Filtres de la liste des demandes : objectif, statut, zone, type. Composant
+ * client qui ne fait que piloter l'URL (?objectif=&statut=&zone=&type=) ; la
+ * page relit ces paramètres et recharge les données filtrées côté serveur. Toute
+ * sélection remet la pagination à la page 1.
  */
-export default function FiltresBiens({ zones }: { zones: ZoneOption[] }) {
+export default function FiltresDemandes({ zones }: { zones: ZoneOption[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -31,7 +28,7 @@ export default function FiltresBiens({ zones }: { zones: ZoneOption[] }) {
     const params = new URLSearchParams(searchParams.toString());
     if (valeur) params.set(cle, valeur);
     else params.delete(cle);
-    params.delete("page"); // un nouveau filtre repart de la 1re page
+    params.delete("page");
     router.push(`${pathname}?${params.toString()}`);
   }
 
@@ -48,9 +45,28 @@ export default function FiltresBiens({ zones }: { zones: ZoneOption[] }) {
           className={champClasse}
         >
           <option value="">Tous les objectifs</option>
-          {OBJECTIFS.map((o) => (
+          {OBJECTIFS_DEMANDE.map((o) => (
             <option key={o} value={o}>
-              {OBJECTIF_LABELS[o]}
+              {OBJECTIF_DEMANDE_LABELS[o]}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="filtre-statut" className={labelClasse}>
+          Statut
+        </label>
+        <select
+          id="filtre-statut"
+          value={searchParams.get("statut") ?? ""}
+          onChange={(e) => appliquer("statut", e.target.value)}
+          className={champClasse}
+        >
+          <option value="">Tous les statuts</option>
+          {STATUTS.map((s) => (
+            <option key={s} value={s}>
+              {STATUT_DEMANDE_LABELS[s]}
             </option>
           ))}
         </select>
@@ -89,25 +105,6 @@ export default function FiltresBiens({ zones }: { zones: ZoneOption[] }) {
           {TYPES_BIEN.map((t) => (
             <option key={t} value={t}>
               {TYPE_BIEN_LABELS[t]}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="filtre-statut" className={labelClasse}>
-          Cycle de vie
-        </label>
-        <select
-          id="filtre-statut"
-          value={searchParams.get("statut") ?? ""}
-          onChange={(e) => appliquer("statut", e.target.value)}
-          className={champClasse}
-        >
-          <option value="">Tous les statuts</option>
-          {STATUTS.map((s) => (
-            <option key={s} value={s}>
-              {STATUT_BIEN_LABELS[s]}
             </option>
           ))}
         </select>

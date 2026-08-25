@@ -153,6 +153,7 @@ export type BienDetail = {
   type: TypeBien;
   objectif: ObjectifBien;
   statut: StatutBien;
+  zoneId: string | null;
   dateRelance: string | null;
   statutJuridique: StatutJuridique | null;
   prix: number | null;
