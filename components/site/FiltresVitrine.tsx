@@ -5,8 +5,8 @@ import { TYPES_BIEN, TYPE_BIEN_LABELS } from "@/types/bien";
 import type { VilleOption } from "@/services/vitrine";
 
 const selectClasse =
-  "w-full rounded-lg border border-sable-200 bg-sable-50 px-3 py-2 text-sm text-stone-700 transition-colors focus:border-bleu-profond focus:outline-none focus:ring-1 focus:ring-bleu-profond";
-const labelClasse = "mb-1 block text-xs font-medium text-stone-500";
+  "w-full rounded-lg border border-craie-200 bg-craie-50 px-3 py-2 text-sm text-slate-700 transition-colors focus:border-marine focus:outline-none focus:ring-1 focus:ring-marine";
+const labelClasse = "mb-1 block text-xs font-medium text-slate-500";
 
 /**
  * Filtres publics : objectif (vendre/louer), type de bien, ville. Comme dans
@@ -28,7 +28,7 @@ export default function FiltresVitrine({ villes }: { villes: VilleOption[] }) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3 rounded-2xl bg-sable-100/60 p-4 ring-1 ring-sable-200 sm:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 rounded-2xl bg-craie-100/60 p-4 ring-1 ring-craie-200 sm:grid-cols-3">
       <div>
         <label htmlFor="f-objectif" className={labelClasse}>
           Objectif

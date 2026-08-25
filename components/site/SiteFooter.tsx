@@ -32,18 +32,21 @@ export default function SiteFooter() {
   const annee = new Date().getFullYear();
 
   return (
-    <footer className="mt-24 border-t border-sable-200 bg-sable-100">
+    <footer className="mt-24 border-t border-craie-200 bg-craie-100">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-bleu-profond text-sm font-bold text-white">
-              M2S
-            </span>
-            <span className="font-display text-lg font-semibold text-stone-900">
+            {/* eslint-disable-next-line @next/next/no-img-element -- petit logo statique local, <img> suffit. */}
+            <img
+              src="/logo-icon.png"
+              alt={AGENCE.nom}
+              className="h-9 w-9 rounded-lg"
+            />
+            <span className="font-display text-lg font-semibold text-slate-900">
               {AGENCE.nom}
             </span>
           </div>
-          <p className="mt-3 max-w-xs text-sm text-stone-600">{AGENCE.slogan}</p>
+          <p className="mt-3 max-w-xs text-sm text-slate-600">{AGENCE.slogan}</p>
 
           {(AGENCE.facebook || AGENCE.instagram) && (
             <div className="mt-4 flex items-center gap-3">
@@ -53,7 +56,7 @@ export default function SiteFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"
-                  className="grid h-9 w-9 place-items-center rounded-full bg-sable-50 text-stone-600 ring-1 ring-sable-200 transition-colors hover:text-terracotta-600"
+                  className="grid h-9 w-9 place-items-center rounded-full bg-craie-50 text-slate-600 ring-1 ring-craie-200 transition-colors hover:text-orange-hover"
                 >
                   <IconeFacebook />
                 </a>
@@ -64,7 +67,7 @@ export default function SiteFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
-                  className="grid h-9 w-9 place-items-center rounded-full bg-sable-50 text-stone-600 ring-1 ring-sable-200 transition-colors hover:text-terracotta-600"
+                  className="grid h-9 w-9 place-items-center rounded-full bg-craie-50 text-slate-600 ring-1 ring-craie-200 transition-colors hover:text-orange-hover"
                 >
                   <IconeInstagram />
                 </a>
@@ -74,22 +77,22 @@ export default function SiteFooter() {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Navigation
           </h3>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
-              <Link href="/" className="text-stone-600 hover:text-terracotta-600">
+              <Link href="/" className="text-slate-600 hover:text-orange-hover">
                 Accueil
               </Link>
             </li>
             <li>
-              <Link href="/nos-biens" className="text-stone-600 hover:text-terracotta-600">
+              <Link href="/nos-biens" className="text-slate-600 hover:text-orange-hover">
                 Nos biens
               </Link>
             </li>
             <li>
-              <Link href="/contact" className="text-stone-600 hover:text-terracotta-600">
+              <Link href="/contact" className="text-slate-600 hover:text-orange-hover">
                 Contact
               </Link>
             </li>
@@ -97,14 +100,14 @@ export default function SiteFooter() {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
             Contact
           </h3>
-          <ul className="mt-3 space-y-2 text-sm text-stone-600">
+          <ul className="mt-3 space-y-2 text-sm text-slate-600">
             <li>
               <a
                 href={telHref(AGENCE.telephone)}
-                className="inline-flex items-center gap-2 hover:text-terracotta-600"
+                className="inline-flex items-center gap-2 hover:text-orange-hover"
               >
                 <Phone className="h-4 w-4" aria-hidden="true" /> {AGENCE.telephone}
               </a>
@@ -112,7 +115,7 @@ export default function SiteFooter() {
             <li>
               <a
                 href={`mailto:${AGENCE.email}`}
-                className="inline-flex items-center gap-2 hover:text-terracotta-600"
+                className="inline-flex items-center gap-2 hover:text-orange-hover"
               >
                 <Mail className="h-4 w-4" aria-hidden="true" /> {AGENCE.email}
               </a>
@@ -124,7 +127,7 @@ export default function SiteFooter() {
         </div>
       </div>
 
-      <div className="border-t border-sable-200 py-4 text-center text-xs text-stone-500">
+      <div className="border-t border-craie-200 py-4 text-center text-xs text-slate-500">
         © {annee} {AGENCE.nom}. Tous droits réservés.
       </div>
     </footer>

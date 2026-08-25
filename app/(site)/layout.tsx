@@ -40,7 +40,7 @@ export default function SiteLayout({
 }) {
   return (
     <div
-      className={`${fraunces.variable} flex min-h-full flex-col bg-sable-50 text-stone-900`}
+      className={`${fraunces.variable} flex min-h-full flex-col bg-craie-50 text-slate-900`}
     >
       <SiteHeader />
       <main className="flex-1">{children}</main>

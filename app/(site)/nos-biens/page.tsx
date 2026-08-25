@@ -64,10 +64,10 @@ export default async function NosBiensPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <header className="mb-8">
-        <h1 className="font-display text-3xl font-semibold text-stone-900 sm:text-4xl">
+        <h1 className="font-display text-3xl font-semibold text-slate-900 sm:text-4xl">
           Nos biens disponibles
         </h1>
-        <p className="mt-2 text-stone-600">
+        <p className="mt-2 text-slate-600">
           {total} bien{total > 1 ? "s" : ""} à découvrir à Dakar.
         </p>
       </header>
@@ -75,12 +75,12 @@ export default async function NosBiensPage({
       <FiltresVitrine villes={villes} />
 
       {rows.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center rounded-2xl border border-dashed border-sable-200 bg-sable-100/50 p-14 text-center">
-          <SearchX className="h-10 w-10 text-stone-400" aria-hidden="true" />
-          <p className="mt-4 font-medium text-stone-700">
+        <div className="mt-10 flex flex-col items-center rounded-2xl border border-dashed border-craie-200 bg-craie-100/50 p-14 text-center">
+          <SearchX className="h-10 w-10 text-slate-400" aria-hidden="true" />
+          <p className="mt-4 font-medium text-slate-700">
             Aucun bien ne correspond à votre recherche
           </p>
-          <p className="mt-1 text-sm text-stone-500">
+          <p className="mt-1 text-sm text-slate-500">
             Modifiez vos filtres ou revenez bientôt : notre portefeuille évolue
             chaque semaine.
           </p>
@@ -103,7 +103,7 @@ export default async function NosBiensPage({
             label="Précédent"
             paramsBase={paramsBase}
           />
-          <span className="text-stone-500">
+          <span className="text-slate-500">
             Page {page} / {nbPages}
           </span>
           <PaginationLien
@@ -130,14 +130,14 @@ function PaginationLien({
   paramsBase: URLSearchParams;
 }) {
   if (disabled) {
-    return <span className="text-stone-300">{label}</span>;
+    return <span className="text-slate-300">{label}</span>;
   }
   const params = new URLSearchParams(paramsBase);
   params.set("page", String(page));
   return (
     <Link
       href={`/nos-biens?${params.toString()}`}
-      className="rounded-full border border-sable-200 px-4 py-2 font-medium text-stone-700 transition-colors hover:bg-sable-100"
+      className="rounded-full border border-craie-200 px-4 py-2 font-medium text-slate-700 transition-colors hover:bg-craie-100"
     >
       {label}
     </Link>

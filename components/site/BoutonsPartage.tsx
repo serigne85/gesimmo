@@ -36,11 +36,11 @@ export default function BoutonsPartage({
   const x = `https://twitter.com/intent/tweet?text=${encodeURIComponent(titre)}&url=${encodeURIComponent(url)}`;
 
   const lienClasse =
-    "inline-flex items-center gap-2 rounded-full border border-sable-200 px-4 py-2 text-sm font-medium text-stone-700 transition-colors hover:bg-sable-100";
+    "inline-flex items-center gap-2 rounded-full border border-craie-200 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-craie-100";
 
   return (
     <div>
-      <p className="flex items-center gap-2 text-sm font-medium text-stone-500">
+      <p className="flex items-center gap-2 text-sm font-medium text-slate-500">
         <Share2 className="h-4 w-4" aria-hidden="true" /> Partager ce bien
       </p>
       <div className="mt-3 flex flex-wrap gap-2">

@@ -21,7 +21,7 @@ export default function GalerieBienVitrine({
 
   if (photos.length === 0) {
     return (
-      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-2xl bg-sable-100 text-sable-200 ring-1 ring-sable-200">
+      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-2xl bg-craie-100 text-craie-200 ring-1 ring-craie-200">
         <House className="h-16 w-16" aria-hidden="true" />
       </div>
     );
@@ -29,7 +29,7 @@ export default function GalerieBienVitrine({
 
   return (
     <div className="space-y-3">
-      <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-sable-100 ring-1 ring-sable-200">
+      <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-craie-100 ring-1 ring-craie-200">
         <img
           src={photos[actif]}
           alt={alt}
@@ -48,8 +48,8 @@ export default function GalerieBienVitrine({
                 aria-current={i === actif}
                 className={`block aspect-square w-full overflow-hidden rounded-lg ring-2 transition ${
                   i === actif
-                    ? "ring-terracotta-500"
-                    : "ring-transparent hover:ring-sable-200"
+                    ? "ring-orange"
+                    : "ring-transparent hover:ring-craie-200"
                 }`}
               >
                 <img

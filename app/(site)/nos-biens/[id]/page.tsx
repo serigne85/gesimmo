@@ -88,7 +88,7 @@ export default async function FicheBienPage({
   const titre = bien.titre ?? TYPE_BIEN_LABELS[bien.type];
   const objectifLabel = bien.objectif === "location" ? "À louer" : "À vendre";
   const objectifClasse =
-    bien.objectif === "location" ? "bg-terracotta-500" : "bg-bleu-profond";
+    bien.objectif === "location" ? "bg-orange" : "bg-marine";
   const prix =
     bien.prix === null
       ? "Prix sur demande"
@@ -123,7 +123,7 @@ export default async function FicheBienPage({
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <Link
         href="/nos-biens"
-        className="inline-flex items-center gap-2 text-sm font-medium text-stone-600 transition-colors hover:text-terracotta-600"
+        className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-orange-hover"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Retour aux biens
       </Link>
@@ -134,21 +134,21 @@ export default async function FicheBienPage({
           <GalerieBienVitrine photos={bien.photos} alt={titre} />
 
           <div className="mt-8">
-            <h2 className="font-display text-xl font-semibold text-stone-900">
+            <h2 className="font-display text-xl font-semibold text-slate-900">
               Caractéristiques
             </h2>
             <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
               {caracteristiques.map((c) => (
                 <div
                   key={c.label}
-                  className="rounded-xl bg-sable-100/60 p-4 ring-1 ring-sable-200"
+                  className="rounded-xl bg-craie-100/60 p-4 ring-1 ring-craie-200"
                 >
                   <c.icon
-                    className="h-5 w-5 text-terracotta-600"
+                    className="h-5 w-5 text-orange-hover"
                     aria-hidden="true"
                   />
-                  <dt className="mt-2 text-xs text-stone-500">{c.label}</dt>
-                  <dd className="text-sm font-medium text-stone-800">
+                  <dt className="mt-2 text-xs text-slate-500">{c.label}</dt>
+                  <dd className="text-sm font-medium text-slate-800">
                     {c.valeur}
                   </dd>
                 </div>
@@ -158,10 +158,10 @@ export default async function FicheBienPage({
 
           {bien.description && (
             <div className="mt-8">
-              <h2 className="font-display text-xl font-semibold text-stone-900">
+              <h2 className="font-display text-xl font-semibold text-slate-900">
                 Description
               </h2>
-              <p className="mt-3 whitespace-pre-line leading-relaxed text-stone-700">
+              <p className="mt-3 whitespace-pre-line leading-relaxed text-slate-700">
                 {bien.description}
               </p>
             </div>
@@ -172,7 +172,7 @@ export default async function FicheBienPage({
               href={bien.videoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-8 inline-flex items-center gap-2 rounded-full border border-sable-200 px-5 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-sable-100"
+              className="mt-8 inline-flex items-center gap-2 rounded-full border border-craie-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-craie-100"
             >
               <Video className="h-4 w-4" aria-hidden="true" /> Voir la vidéo du bien
             </a>
@@ -181,24 +181,24 @@ export default async function FicheBienPage({
 
         {/* Colonne latérale : prix + contact (collante sur grand écran) */}
         <aside className="lg:col-span-1">
-          <div className="rounded-2xl bg-sable-50 p-6 ring-1 ring-sable-200 lg:sticky lg:top-24">
+          <div className="rounded-2xl bg-craie-50 p-6 ring-1 ring-craie-200 lg:sticky lg:top-24">
             <span
               className={`inline-block rounded-full px-3 py-1 text-xs font-semibold text-white ${objectifClasse}`}
             >
               {objectifLabel}
             </span>
-            <h1 className="mt-3 font-display text-2xl font-semibold text-stone-900">
+            <h1 className="mt-3 font-display text-2xl font-semibold text-slate-900">
               {titre}
             </h1>
             {lieu && (
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-stone-500">
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
                 <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" /> {lieu}
               </p>
             )}
-            <p className="mt-4 font-display text-2xl font-semibold text-terracotta-600">
+            <p className="mt-4 font-display text-2xl font-semibold text-orange-hover">
               {prix}
             </p>
-            <p className="mt-1 font-mono text-xs text-stone-400">
+            <p className="mt-1 font-mono text-xs text-slate-400">
               Réf. {bien.reference}
             </p>
 
@@ -207,26 +207,26 @@ export default async function FicheBienPage({
                 href={waHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-bleu-profond px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-bleu-profond-hover"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-marine px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-marine-hover"
               >
                 <MessageCircle className="h-4 w-4" aria-hidden="true" /> Contacter
                 sur WhatsApp
               </a>
               <a
                 href={`tel:${AGENCE.telephone.replace(/\s/g, "")}`}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-700 transition-colors hover:bg-sable-100"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-craie-100"
               >
                 <Phone className="h-4 w-4" aria-hidden="true" /> Appeler l&apos;agence
               </a>
               <a
                 href={`mailto:${AGENCE.email}?subject=${encodeURIComponent(`Bien ${bien.reference}`)}`}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-stone-300 px-4 py-3 text-sm font-semibold text-stone-700 transition-colors hover:bg-sable-100"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-craie-100"
               >
                 <Mail className="h-4 w-4" aria-hidden="true" /> Écrire un e-mail
               </a>
             </div>
 
-            <div className="mt-6 border-t border-sable-200 pt-6">
+            <div className="mt-6 border-t border-craie-200 pt-6">
               <BoutonsPartage
                 url={`${SITE_URL}/nos-biens/${bien.id}`}
                 titre={titre}

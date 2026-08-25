@@ -22,16 +22,16 @@ export default function CarteBienVitrine({ bien }: { bien: BienVitrine }) {
 
   const objectifLabel = bien.objectif === "location" ? "À louer" : "À vendre";
   const objectifClasse =
-    bien.objectif === "location" ? "bg-terracotta-500" : "bg-bleu-profond";
+    bien.objectif === "location" ? "bg-orange" : "bg-marine";
 
   const lieu = [bien.villeNom, bien.zoneNom].filter(Boolean).join(" · ");
 
   return (
     <Link
       href={`/nos-biens/${bien.id}`}
-      className="group block overflow-hidden rounded-2xl bg-sable-50 ring-1 ring-sable-200 transition hover:shadow-lg hover:shadow-stone-900/5"
+      className="group block overflow-hidden rounded-2xl bg-craie-50 ring-1 ring-craie-200 transition hover:shadow-lg hover:shadow-slate-900/5"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-sable-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-craie-100">
         {bien.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- URLs signées Supabase (bucket privé) : <img> + lazy loading, pas next/image.
           <img
@@ -41,7 +41,7 @@ export default function CarteBienVitrine({ bien }: { bien: BienVitrine }) {
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-sable-200">
+          <div className="flex h-full w-full items-center justify-center text-craie-200">
             <House className="h-12 w-12" aria-hidden="true" />
           </div>
         )}
@@ -53,19 +53,19 @@ export default function CarteBienVitrine({ bien }: { bien: BienVitrine }) {
       </div>
 
       <div className="p-4">
-        <p className="font-display text-lg font-semibold text-stone-900">{prix}</p>
-        <h3 className="mt-1 truncate font-medium text-stone-800">
+        <p className="font-display text-lg font-semibold text-slate-900">{prix}</p>
+        <h3 className="mt-1 truncate font-medium text-slate-800">
           {bien.titre ?? TYPE_BIEN_LABELS[bien.type]}
         </h3>
         {lieu && (
-          <p className="mt-1 flex items-center gap-1.5 text-sm text-stone-500">
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
             <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="truncate">{lieu}</span>
           </p>
         )}
 
-        <div className="mt-3 flex items-center gap-4 border-t border-sable-200 pt-3 text-xs text-stone-500">
-          <span className="rounded-md bg-sable-100 px-2 py-0.5 font-medium text-stone-600">
+        <div className="mt-3 flex items-center gap-4 border-t border-craie-200 pt-3 text-xs text-slate-500">
+          <span className="rounded-md bg-craie-100 px-2 py-0.5 font-medium text-slate-600">
             {TYPE_BIEN_LABELS[bien.type]}
           </span>
           {bien.surface !== null && (
@@ -79,7 +79,7 @@ export default function CarteBienVitrine({ bien }: { bien: BienVitrine }) {
               {bien.nombreChambres} ch.
             </span>
           )}
-          <span className="ml-auto font-mono text-stone-400">{bien.reference}</span>
+          <span className="ml-auto font-mono text-slate-400">{bien.reference}</span>
         </div>
       </div>
     </Link>

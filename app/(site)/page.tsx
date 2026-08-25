@@ -19,26 +19,26 @@ export default async function AccueilVitrine() {
       <section>
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2 md:items-center md:py-24">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-terracotta-500/10 px-3 py-1 text-sm font-medium text-terracotta-600">
+            <span className="inline-flex items-center gap-2 rounded-full bg-orange/10 px-3 py-1 text-sm font-medium text-orange-hover">
               <MapPin className="h-4 w-4" aria-hidden="true" /> Dakar, Sénégal
             </span>
-            <h1 className="mt-5 font-display text-4xl font-semibold leading-tight text-stone-900 sm:text-5xl">
+            <h1 className="mt-5 font-display text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl">
               Trouvez le bien qui vous ressemble, en toute confiance
             </h1>
-            <p className="mt-5 max-w-md text-lg text-stone-600">
+            <p className="mt-5 max-w-md text-lg text-slate-600">
               {AGENCE.nom} vous accompagne dans la vente, la location et la
               gérance de biens immobiliers à Dakar.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/nos-biens"
-                className="inline-flex items-center gap-2 rounded-full bg-bleu-profond px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-bleu-profond-hover"
+                className="inline-flex items-center gap-2 rounded-full bg-marine px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-marine-hover"
               >
                 Voir nos biens <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-2 rounded-full border border-stone-300 px-6 py-3 text-sm font-semibold text-stone-700 transition-colors hover:bg-sable-100"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-craie-100"
               >
                 Nous contacter
               </Link>
@@ -46,12 +46,12 @@ export default async function AccueilVitrine() {
           </div>
 
           {/* Placeholder visuel — remplacé par une vraie photo à l'étape 2. */}
-          <div className="aspect-[4/3] rounded-3xl bg-gradient-to-br from-terracotta-500/20 via-sable-200 to-bleu-profond/15 ring-1 ring-sable-200" />
+          <div className="aspect-[4/3] rounded-3xl bg-gradient-to-br from-orange/20 via-craie-200 to-marine/15 ring-1 ring-craie-200" />
         </div>
       </section>
 
       {/* Trois promesses */}
-      <section className="border-y border-sable-200 bg-sable-100/60">
+      <section className="border-y border-craie-200 bg-craie-100/60">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:px-6 md:grid-cols-3">
           {[
             {
@@ -75,15 +75,15 @@ export default async function AccueilVitrine() {
           ].map((promesse) => (
             <div
               key={promesse.titre}
-              className="rounded-2xl bg-sable-50 p-6 ring-1 ring-sable-200"
+              className="rounded-2xl bg-craie-50 p-6 ring-1 ring-craie-200"
             >
-              <span className="grid h-11 w-11 place-items-center rounded-xl bg-bleu-profond/10 text-bleu-profond">
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-marine/10 text-marine">
                 <promesse.icon className="h-5 w-5" aria-hidden="true" />
               </span>
-              <h3 className="mt-4 font-display text-lg font-semibold text-stone-900">
+              <h3 className="mt-4 font-display text-lg font-semibold text-slate-900">
                 {promesse.titre}
               </h3>
-              <p className="mt-2 text-sm text-stone-600">{promesse.texte}</p>
+              <p className="mt-2 text-sm text-slate-600">{promesse.texte}</p>
             </div>
           ))}
         </div>
@@ -92,18 +92,18 @@ export default async function AccueilVitrine() {
       {/* Aperçu des biens — grille à venir (étape 2) */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="flex items-end justify-between">
-          <h2 className="font-display text-2xl font-semibold text-stone-900">
+          <h2 className="font-display text-2xl font-semibold text-slate-900">
             Nos biens disponibles
           </h2>
           <Link
             href="/nos-biens"
-            className="inline-flex items-center gap-1 text-sm font-medium text-terracotta-600 hover:text-terracotta-500"
+            className="inline-flex items-center gap-1 text-sm font-medium text-orange-hover hover:text-orange"
           >
             Tout voir <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
         {apercu.length === 0 ? (
-          <p className="mt-6 rounded-2xl border border-dashed border-sable-200 bg-sable-100/50 p-10 text-center text-sm text-stone-500">
+          <p className="mt-6 rounded-2xl border border-dashed border-craie-200 bg-craie-100/50 p-10 text-center text-sm text-slate-500">
             Aucun bien disponible pour le moment. Revenez bientôt.
           </p>
         ) : (
