@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { getUtilisateurConnecte } from "@/services/auth";
 import { trouverOuCreerContact } from "@/services/contacts";
 import {
@@ -170,9 +169,8 @@ export async function modifierDemande(
     .maybeSingle();
   if (!existante) return { error: "Demande introuvable." };
 
-  const admin = createAdminClient();
-
-  const { error: majErr } = await admin
+  // Mise à jour via le client de session (RLS : policy demandes_update, 0012).
+  const { error: majErr } = await supabase
     .from("demandes")
     .update({
       objectif: d.objectif,
@@ -185,8 +183,7 @@ export async function modifierDemande(
       date_echeance: d.dateEcheance || null,
       notes: d.notes ?? null,
     })
-    .eq("id", id)
-    .eq("agence_id", profil.agenceId);
+    .eq("id", id);
 
   if (majErr) {
     console.error("modifierDemande:", majErr);
@@ -194,11 +191,11 @@ export async function modifierDemande(
   }
 
   // Resynchronisation des zones et types : on repart d'une table propre.
-  await admin.from("demande_zones").delete().eq("demande_id", id).eq("agence_id", profil.agenceId);
-  await admin.from("demande_types").delete().eq("demande_id", id).eq("agence_id", profil.agenceId);
+  await supabase.from("demande_zones").delete().eq("demande_id", id);
+  await supabase.from("demande_types").delete().eq("demande_id", id);
 
   if (d.zoneIds.length > 0) {
-    await admin.from("demande_zones").insert(
+    await supabase.from("demande_zones").insert(
       d.zoneIds.map((zoneId) => ({
         agence_id: profil.agenceId,
         demande_id: id,
@@ -207,7 +204,7 @@ export async function modifierDemande(
     );
   }
   if (d.types.length > 0) {
-    await admin.from("demande_types").insert(
+    await supabase.from("demande_types").insert(
       d.types.map((type) => ({
         agence_id: profil.agenceId,
         demande_id: id,
@@ -240,14 +237,13 @@ export async function supprimerDemandes(
     return { error: "Aucune demande sélectionnée." };
   }
 
-  // Écriture privilégiée via service_role (contourne la RLS) : on RESTREINT donc
-  // explicitement à l'agence de l'admin pour ne jamais toucher une autre agence.
-  const admin = createAdminClient();
-  const { error } = await admin
+  // Suppression logique via le client de session : la RLS (policy demandes_update,
+  // migration 0012) cloisonne à l'agence de l'utilisateur.
+  const supabase = await createClient();
+  const { error } = await supabase
     .from("demandes")
     .update({ supprime_le: new Date().toISOString() })
     .in("id", ids)
-    .eq("agence_id", profil.agenceId)
     .is("supprime_le", null);
 
   if (error) {

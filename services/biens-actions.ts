@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { getUtilisateurConnecte } from "@/services/auth";
 import { trouverOuCreerContact } from "@/services/contacts";
 import { creerBienSchema, modifierBienSchema } from "@/lib/validation/bien";
@@ -261,12 +260,13 @@ export async function supprimerBiens(
     return { error: "Aucun bien sélectionné." };
   }
 
-  const admin = createAdminClient();
-  const { error } = await admin
+  // Suppression logique via le client de session : la RLS (biens_update)
+  // cloisonne à l'agence de l'utilisateur.
+  const supabase = await createClient();
+  const { error } = await supabase
     .from("biens")
     .update({ supprime_le: new Date().toISOString() })
     .in("id", ids)
-    .eq("agence_id", profil.agenceId)
     .is("supprime_le", null);
 
   if (error) {
