@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Phone, MessageCircle } from "lucide-react";
+import { ArrowLeft, Phone, MessageCircle, Pencil } from "lucide-react";
 import { getDemandeById } from "@/services/demandes";
 import { biensCorrespondants } from "@/services/matching";
 import { OBJECTIF_DEMANDE_LABELS } from "@/types/demande";
@@ -49,21 +49,33 @@ export default async function DemandeDetailPage({
       </Link>
 
       {/* En-tête */}
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-          {demande.clientNom || "—"}
-        </h1>
-        <span className="text-sm text-zinc-500 dark:text-zinc-400">
-          · {OBJECTIF_DEMANDE_LABELS[demande.objectif]}
-        </span>
-        <BadgeStatutDemande statut={demande.statut} />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+            {demande.clientNom || "—"}
+          </h1>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">
+            · {OBJECTIF_DEMANDE_LABELS[demande.objectif]}
+          </span>
+          <BadgeStatutDemande statut={demande.statut} />
+        </div>
+        <Link
+          href={`/demandes/${demande.id}/modifier`}
+          className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+        >
+          <Pencil className="h-4 w-4" aria-hidden="true" />
+          Modifier
+        </Link>
       </div>
 
       {/* Critères */}
       <div className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
         <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
           <Champ label="Budget">{budget}</Champ>
-          <Champ label="Enregistrée le">{formatDate(demande.creeLe)}</Champ>
+          <Champ label="Date de la demande">{formatDate(demande.dateDemande)}</Champ>
+          <Champ label="Échéance">
+            {demande.dateEcheance ? formatDate(demande.dateEcheance) : "—"}
+          </Champ>
           <Champ label="Chambres min">{demande.nombreChambresMin ?? "—"}</Champ>
           <Champ label="Surface min">
             {demande.surfaceMin ? `${demande.surfaceMin} m²` : "—"}

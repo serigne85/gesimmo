@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { listDemandes, DEMANDES_PAGE_SIZE } from "@/services/demandes";
 import { listZones } from "@/services/reference";
+import { getUtilisateurConnecte } from "@/services/auth";
 import { TYPES_BIEN } from "@/types/bien";
 import type { TypeBien } from "@/types/bien";
 import {
@@ -11,7 +12,7 @@ import {
   type StatutDemande,
 } from "@/types/demande";
 import FiltresDemandes from "@/components/metier/FiltresDemandes";
-import LigneDemande from "@/components/metier/LigneDemande";
+import TableauDemandes from "@/components/metier/TableauDemandes";
 
 /**
  * Liste des demandes clients. Server Component : données chargées côté serveur
@@ -46,11 +47,16 @@ export default async function DemandesPage({
     : undefined;
   const zoneId = sp.zone || undefined;
 
-  const [zones, { rows, total }] = await Promise.all([
+  const [zones, { rows, total }, profil] = await Promise.all([
     listZones(),
     listDemandes(page, { objectif, statut, zoneId, type }),
+    getUtilisateurConnecte(),
   ]);
   const nbPages = Math.max(1, Math.ceil(total / DEMANDES_PAGE_SIZE));
+  const estAdmin = profil?.role === "admin";
+  const aujourdhui = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Africa/Dakar",
+  });
 
   // Chaîne de paramètres pour conserver les filtres dans la pagination.
   const paramsBase = new URLSearchParams();
@@ -86,11 +92,11 @@ export default async function DemandesPage({
           Aucune demande ne correspond. Modifiez les filtres ou enregistrez-en une.
         </div>
       ) : (
-        <ul className="divide-y divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
-          {rows.map((demande) => (
-            <LigneDemande key={demande.id} demande={demande} />
-          ))}
-        </ul>
+        <TableauDemandes
+          demandes={rows}
+          aujourdhui={aujourdhui}
+          peutSupprimer={estAdmin}
+        />
       )}
 
       {nbPages > 1 && (

@@ -1,49 +1,160 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Phone, MessageCircle, Eye, Tag, KeyRound, ImageOff } from "lucide-react";
+import { Phone, MessageCircle, Eye, Tag, KeyRound, ImageOff, Trash2 } from "lucide-react";
 import {
   TYPE_BIEN_LABELS,
   OBJECTIF_LABELS,
   type BienListe,
 } from "@/types/bien";
 import { formatFcfa, telHref, whatsappHref } from "@/lib/utils/format";
+import { supprimerBiens } from "@/services/biens-actions";
 import BadgeStatutBien from "./BadgeStatutBien";
 
 /**
  * Liste des biens sous forme de tableau (écran de pilotage du portefeuille).
- * Server Component : pas d'interactivité, les actions rapides sont de simples
- * liens (tel:, wa.me, fiche). Le tableau défile horizontalement sur mobile.
+ * Le tableau défile horizontalement sur mobile. Si `peutSupprimer` (admin), des
+ * cases à cocher et un bouton de suppression logique apparaissent.
  */
-export default function TableauBiens({ biens }: { biens: BienListe[] }) {
+export default function TableauBiens({
+  biens,
+  peutSupprimer = false,
+}: {
+  biens: BienListe[];
+  peutSupprimer?: boolean;
+}) {
+  const router = useRouter();
+  const [selection, setSelection] = useState<Set<string>>(new Set());
+  const [pending, startTransition] = useTransition();
+  const [erreur, setErreur] = useState<string | null>(null);
+
+  const tousSelectionnes =
+    biens.length > 0 && selection.size === biens.length;
+
+  function basculer(id: string) {
+    setSelection((prev) => {
+      const suivant = new Set(prev);
+      if (suivant.has(id)) suivant.delete(id);
+      else suivant.add(id);
+      return suivant;
+    });
+  }
+
+  function basculerTous() {
+    setSelection(tousSelectionnes ? new Set() : new Set(biens.map((b) => b.id)));
+  }
+
+  function supprimer() {
+    if (selection.size === 0) return;
+    if (
+      !window.confirm(
+        `Supprimer ${selection.size} bien${selection.size > 1 ? "s" : ""} ?`
+      )
+    )
+      return;
+    setErreur(null);
+    startTransition(async () => {
+      const res = await supprimerBiens(Array.from(selection));
+      if (res.error) setErreur(res.error);
+      else {
+        setSelection(new Set());
+        router.refresh();
+      }
+    });
+  }
+
   return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-      <table className="w-full min-w-[820px] text-sm">
-        <thead>
-          <tr className="border-b border-zinc-200 text-left text-xs font-medium uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-            <th className="px-3 py-2 font-medium">Photo</th>
-            <th className="px-3 py-2 font-medium">Objectif</th>
-            <th className="px-3 py-2 font-medium">Titre</th>
-            <th className="px-3 py-2 font-medium">Type</th>
-            <th className="px-3 py-2 font-medium">Zone</th>
-            <th className="px-3 py-2 font-medium">Prix</th>
-            <th className="px-3 py-2 font-medium">Cycle de vie</th>
-            <th className="px-3 py-2 text-right font-medium">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-          {biens.map((bien) => (
-            <LigneBien key={bien.id} bien={bien} />
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-3">
+      {peutSupprimer && selection.size > 0 && (
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={supprimer}
+            disabled={pending}
+            className="inline-flex items-center gap-2 rounded-md bg-red-700 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-800 disabled:opacity-60"
+          >
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+            {pending ? "Suppression…" : `Supprimer (${selection.size})`}
+          </button>
+          {erreur && (
+            <span role="alert" className="text-sm text-red-600 dark:text-red-400">
+              {erreur}
+            </span>
+          )}
+        </div>
+      )}
+
+      <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+        <table className="w-full min-w-[820px] text-sm">
+          <thead>
+            <tr className="border-b border-zinc-200 text-left text-xs font-medium uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+              {peutSupprimer && (
+                <th className="w-10 px-3 py-2">
+                  <input
+                    type="checkbox"
+                    checked={tousSelectionnes}
+                    onChange={basculerTous}
+                    aria-label="Tout sélectionner"
+                    className="h-4 w-4 rounded border-zinc-300 text-blue-900 focus:ring-blue-600"
+                  />
+                </th>
+              )}
+              <th className="px-3 py-2 font-medium">Photo</th>
+              <th className="px-3 py-2 font-medium">Objectif</th>
+              <th className="px-3 py-2 font-medium">Titre</th>
+              <th className="px-3 py-2 font-medium">Type</th>
+              <th className="px-3 py-2 font-medium">Zone</th>
+              <th className="px-3 py-2 font-medium">Prix</th>
+              <th className="px-3 py-2 font-medium">Cycle de vie</th>
+              <th className="px-3 py-2 text-right font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+            {biens.map((bien) => (
+              <LigneBien
+                key={bien.id}
+                bien={bien}
+                peutSupprimer={peutSupprimer}
+                selectionne={selection.has(bien.id)}
+                onBasculer={() => basculer(bien.id)}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
 
-function LigneBien({ bien }: { bien: BienListe }) {
+function LigneBien({
+  bien,
+  peutSupprimer,
+  selectionne,
+  onBasculer,
+}: {
+  bien: BienListe;
+  peutSupprimer: boolean;
+  selectionne: boolean;
+  onBasculer: () => void;
+}) {
   const lieu = [bien.zoneNom, bien.villeNom].filter(Boolean).join(", ");
 
   return (
     <tr className="text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800/50">
+      {peutSupprimer && (
+        <td className="px-3 py-2">
+          <input
+            type="checkbox"
+            checked={selectionne}
+            onChange={onBasculer}
+            aria-label={`Sélectionner ${bien.reference}`}
+            className="h-4 w-4 rounded border-zinc-300 text-blue-900 focus:ring-blue-600"
+          />
+        </td>
+      )}
+
       {/* Photo principale */}
       <td className="px-3 py-2">
         <div className="h-11 w-11 overflow-hidden rounded-md border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800">

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getUtilisateurConnecte } from "@/services/auth";
 import { trouverOuCreerContact } from "@/services/contacts";
 import { creerBienSchema, modifierBienSchema } from "@/lib/validation/bien";
@@ -239,4 +240,40 @@ export async function changerStatutBien(
   revalidatePath("/biens");
   revalidatePath(`/biens/${id}`);
   redirect(`/biens/${id}`);
+}
+
+export type SupprimerBiensState = { error: string | null };
+
+/**
+ * Suppression LOGIQUE de biens (marque `supprime_le`), jamais de DELETE physique
+ * (CLAUDE.md). Réservée à l'admin : contrôle serveur. Écriture privilégiée via
+ * service_role, RESTREINTE explicitement à l'agence de l'admin.
+ */
+export async function supprimerBiens(
+  ids: string[]
+): Promise<SupprimerBiensState> {
+  const profil = await getUtilisateurConnecte();
+  if (!profil || !profil.actif) return { error: "Accès refusé." };
+  if (profil.role !== "admin") {
+    return { error: "Suppression réservée à l'administrateur." };
+  }
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { error: "Aucun bien sélectionné." };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("biens")
+    .update({ supprime_le: new Date().toISOString() })
+    .in("id", ids)
+    .eq("agence_id", profil.agenceId)
+    .is("supprime_le", null);
+
+  if (error) {
+    console.error("supprimerBiens:", error);
+    return { error: "Suppression impossible." };
+  }
+
+  revalidatePath("/biens");
+  return { error: null };
 }

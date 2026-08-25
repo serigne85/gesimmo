@@ -120,7 +120,7 @@ export async function demandesCorrespondantes(
     .from("demandes")
     .select(
       "id, objectif, statut, budget_min, budget_max, nombre_chambres_min, " +
-        "surface_min, cree_le, " +
+        "surface_min, date_demande, date_echeance, cree_le, " +
         "client:contacts(nom_complet, telephone), " +
         "demande_zones(zone_id, zones(nom)), " +
         "demande_types(type)"
@@ -180,6 +180,8 @@ export async function demandesCorrespondantes(
       surfaceMin,
       zones: zonesNoms,
       types,
+      dateDemande: d.date_demande as string,
+      dateEcheance: (d.date_echeance as string | null) ?? null,
       creeLe: d.cree_le as string,
     });
   }

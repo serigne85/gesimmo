@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { listBiens, BIENS_PAGE_SIZE } from "@/services/biens";
 import { listZones } from "@/services/reference";
+import { getUtilisateurConnecte } from "@/services/auth";
 import { TYPES_BIEN, STATUT_BIEN_LABELS, OBJECTIF_LABELS } from "@/types/bien";
 import type { TypeBien, StatutBien, ObjectifBien } from "@/types/bien";
 import FiltresBiens from "@/components/metier/FiltresBiens";
@@ -39,11 +40,13 @@ export default async function BiensPage({
     ? (sp.objectif as ObjectifBien)
     : undefined;
 
-  const [zones, { rows, total }] = await Promise.all([
+  const [zones, { rows, total }, profil] = await Promise.all([
     listZones(),
     listBiens(page, { zoneId, type, statut, objectif }),
+    getUtilisateurConnecte(),
   ]);
   const nbPages = Math.max(1, Math.ceil(total / BIENS_PAGE_SIZE));
+  const estAdmin = profil?.role === "admin";
 
   // Chaîne de paramètres pour conserver les filtres dans les liens de pagination.
   const paramsBase = new URLSearchParams();
@@ -79,7 +82,7 @@ export default async function BiensPage({
           Aucun bien ne correspond. Modifiez les filtres ou saisissez-en un.
         </div>
       ) : (
-        <TableauBiens biens={rows} />
+        <TableauBiens biens={rows} peutSupprimer={estAdmin} />
       )}
 
       {/* Pagination */}

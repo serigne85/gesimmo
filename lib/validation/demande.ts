@@ -22,7 +22,21 @@ export const creerDemandeSchema = z.object({
   budgetMax: entierOptionnel,
   nombreChambresMin: entierOptionnel,
   surfaceMin: entierOptionnel,
+  dateDemande: z.string().trim().optional(),
+  dateEcheance: z.string().trim().optional(),
   notes: z.string().trim().max(2000).optional(),
 });
 
 export type CreerDemandeInput = z.infer<typeof creerDemandeSchema>;
+
+/**
+ * Édition d'une demande : mêmes champs que la création, sans le client (contact
+ * partagé, non modifié ici), plus le statut (pour marquer satisfaite/annulée).
+ */
+export const modifierDemandeSchema = creerDemandeSchema
+  .omit({ clientNom: true, clientTelephone: true })
+  .extend({
+    statut: z.enum(["active", "satisfaite", "annulee"]),
+  });
+
+export type ModifierDemandeInput = z.infer<typeof modifierDemandeSchema>;

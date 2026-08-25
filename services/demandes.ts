@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   DemandeListe,
   DemandeDetail,
+  DemandeEdition,
   ObjectifDemande,
   StatutDemande,
 } from "@/types/demande";
@@ -87,7 +88,7 @@ export async function listDemandes(
     .from("demandes")
     .select(
       "id, objectif, statut, budget_min, budget_max, nombre_chambres_min, " +
-        "surface_min, cree_le, " +
+        "surface_min, date_demande, date_echeance, cree_le, " +
         "client:contacts(nom_complet, telephone), " +
         "demande_zones(zones(nom)), " +
         "demande_types(type)",
@@ -99,7 +100,10 @@ export async function listDemandes(
   if (filtres.statut) query = query.eq("statut", filtres.statut);
   if (idsFiltre !== null) query = query.in("id", idsFiltre);
 
+  // Priorité : échéance la plus proche d'abord (celles sans échéance en dernier),
+  // puis les plus récemment saisies.
   const { data, count, error } = await query
+    .order("date_echeance", { ascending: true, nullsFirst: false })
     .order("cree_le", { ascending: false })
     .range(from, to);
 
@@ -136,6 +140,8 @@ export async function listDemandes(
       surfaceMin: (d.surface_min as number | null) ?? null,
       zones,
       types,
+      dateDemande: d.date_demande as string,
+      dateEcheance: (d.date_echeance as string | null) ?? null,
       creeLe: d.cree_le as string,
     };
   });
@@ -154,7 +160,7 @@ export async function getDemandeById(id: string): Promise<DemandeDetail | null> 
     .from("demandes")
     .select(
       "id, objectif, statut, budget_min, budget_max, nombre_chambres_min, " +
-        "surface_min, notes, cree_le, " +
+        "surface_min, notes, date_demande, date_echeance, cree_le, " +
         "client:contacts(nom_complet, telephone), " +
         "demande_zones(zone_id, zones(nom)), " +
         "demande_types(type)"
@@ -197,6 +203,62 @@ export async function getDemandeById(id: string): Promise<DemandeDetail | null> 
     zones,
     types,
     notes: (d.notes as string | null) ?? null,
+    dateDemande: d.date_demande as string,
+    dateEcheance: (d.date_echeance as string | null) ?? null,
     creeLe: d.cree_le as string,
+  };
+}
+
+/**
+ * Valeurs brutes d'une demande pour l'édition (ids de zones, pas les libellés).
+ * Renvoie null si absente, supprimée, ou hors agence (RLS).
+ */
+export async function getDemandeEdition(
+  id: string
+): Promise<DemandeEdition | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("demandes")
+    .select(
+      "id, objectif, statut, budget_min, budget_max, nombre_chambres_min, " +
+        "surface_min, notes, date_demande, date_echeance, " +
+        "client:contacts(nom_complet, telephone), " +
+        "demande_zones(zone_id), " +
+        "demande_types(type)"
+    )
+    .eq("id", id)
+    .is("supprime_le", null)
+    .maybeSingle();
+
+  if (error) throw new Error(`Lecture de la demande impossible : ${error.message}`);
+  if (!data) return null;
+
+  const d = data as unknown as Record<string, unknown>;
+  const client = premier(
+    d.client as Record<string, unknown> | Record<string, unknown>[] | null
+  );
+  const zoneIds = ((d.demande_zones as Record<string, unknown>[] | null) ?? []).map(
+    (dz) => dz.zone_id as string
+  );
+  const types = ((d.demande_types as Record<string, unknown>[] | null) ?? []).map(
+    (dt) => dt.type as DemandeEdition["types"][number]
+  );
+
+  return {
+    id: d.id as string,
+    clientNom: (client?.nom_complet as string) ?? "",
+    clientTelephone: (client?.telephone as string) ?? "",
+    objectif: d.objectif as DemandeEdition["objectif"],
+    statut: d.statut as DemandeEdition["statut"],
+    budgetMin: (d.budget_min as number | null) ?? null,
+    budgetMax: (d.budget_max as number | null) ?? null,
+    nombreChambresMin: (d.nombre_chambres_min as number | null) ?? null,
+    surfaceMin: (d.surface_min as number | null) ?? null,
+    zoneIds,
+    types,
+    dateDemande: d.date_demande as string,
+    dateEcheance: (d.date_echeance as string | null) ?? null,
+    notes: (d.notes as string | null) ?? null,
   };
 }
