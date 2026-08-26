@@ -23,19 +23,35 @@ import SelecteurPhotos, { type SelecteurPhotosHandle } from "./SelecteurPhotos";
 
 const initialState: CreerBienState = { error: null };
 
+/** Valeurs de pré-remplissage à la CRÉATION (ex. conversion d'une prospection).
+ *  Ne bascule pas le formulaire en mode édition, contrairement au prop `bien`. */
+export type PrefillBien = {
+  titre?: string;
+  objectif?: ObjectifBien;
+  villeId?: string;
+  zoneId?: string;
+  proprietaireNom?: string;
+  proprietaireTelephone?: string;
+  contactNom?: string;
+  contactTelephone?: string;
+};
+
 /**
  * Formulaire de bien, deux modes : `bien` absent = création, `bien` présent =
  * édition (champs pré-remplis). En édition, les contacts et les photos ne sont
- * pas ici (ils se gèrent depuis la fiche / le module Contacts).
+ * pas ici (ils se gèrent depuis la fiche / le module Contacts). `prefill`
+ * pré-remplit une création (sans passer en édition).
  */
 export default function FormulaireBien({
   zones,
   bien,
+  prefill,
   photosSlot,
   peutAjouterReference = false,
 }: {
   zones: ZoneOption[];
   bien?: BienEdition;
+  prefill?: PrefillBien;
   /** Galerie de photos affichée avant le bouton (édition : le bien existe). */
   photosSlot?: ReactNode;
   /** Autorise l'ajout de ville/zone à la volée (admin/direction). */
@@ -50,7 +66,9 @@ export default function FormulaireBien({
   const [envoiPhotos, setEnvoiPhotos] = useState(false);
   const [erreurPhotos, setErreurPhotos] = useState<string | null>(null);
 
-  const [objectif, setObjectif] = useState<ObjectifBien>(bien?.objectif ?? "vente");
+  const [objectif, setObjectif] = useState<ObjectifBien>(
+    bien?.objectif ?? prefill?.objectif ?? "vente"
+  );
 
   // Après création, le bien existe : on envoie les photos en attente (upload
   // différé) puis on file sur sa fiche. Si un envoi échoue, le bien est déjà
@@ -87,7 +105,7 @@ export default function FormulaireBien({
           type="text"
           maxLength={150}
           placeholder="Ex. Villa R+1 avec piscine, Almadies"
-          defaultValue={bien?.titre ?? ""}
+          defaultValue={bien?.titre ?? prefill?.titre ?? ""}
           className={champClasse}
         />
       </div>
@@ -120,8 +138,8 @@ export default function FormulaireBien({
       {/* Ville, zone, adresse (avec ajout de ville/zone à la volée) */}
       <ChampsLocalisation
         zones={zones}
-        defaultVilleId={bien?.villeId}
-        defaultZoneId={bien?.zoneId}
+        defaultVilleId={bien?.villeId ?? prefill?.villeId}
+        defaultZoneId={bien?.zoneId ?? prefill?.zoneId}
         defaultAdresse={bien?.adresse}
         peutAjouter={peutAjouterReference}
       />
@@ -154,7 +172,7 @@ export default function FormulaireBien({
       {/* Propriétaire + contact secondaire : à la création seulement. */}
       {!isEdition && (
         <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
-          <ChampsContactsBien />
+          <ChampsContactsBien defauts={prefill} />
         </div>
       )}
 

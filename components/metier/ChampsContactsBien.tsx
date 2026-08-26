@@ -7,8 +7,18 @@ import { champClasse, labelClasse } from "./champsBien";
  * contacts se gèrent depuis le module Contacts) : le propriétaire (obligatoire)
  * et un contact secondaire optionnel (gardien, mandataire, personne qui fait
  * visiter). Les deux champs du contact vont de pair (validé côté serveur).
+ * `defauts` : valeurs de pré-remplissage (ex. conversion d'une prospection).
  */
-export default function ChampsContactsBien() {
+export default function ChampsContactsBien({
+  defauts,
+}: {
+  defauts?: {
+    proprietaireNom?: string;
+    proprietaireTelephone?: string;
+    contactNom?: string;
+    contactTelephone?: string;
+  };
+}) {
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -21,6 +31,7 @@ export default function ChampsContactsBien() {
             name="proprietaireNom"
             type="text"
             required
+            defaultValue={defauts?.proprietaireNom ?? ""}
             className={champClasse}
           />
         </div>
@@ -34,6 +45,7 @@ export default function ChampsContactsBien() {
             type="tel"
             required
             placeholder="77 123 45 67"
+            defaultValue={defauts?.proprietaireTelephone ?? ""}
             className={champClasse}
           />
         </div>
@@ -48,6 +60,7 @@ export default function ChampsContactsBien() {
             id="contactNom"
             name="contactNom"
             type="text"
+            defaultValue={defauts?.contactNom ?? ""}
             className={champClasse}
           />
         </div>
@@ -60,6 +73,7 @@ export default function ChampsContactsBien() {
             name="contactTelephone"
             type="tel"
             placeholder="77 123 45 67"
+            defaultValue={defauts?.contactTelephone ?? ""}
             className={champClasse}
           />
         </div>

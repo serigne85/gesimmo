@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Building2,
+  MapPin,
   Users,
   FileSignature,
   Target,
@@ -50,6 +51,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/biens",
     icon: Building2,
     roles: ["admin", "direction", "agent", "gestionnaire", "comptable"],
+  },
+  {
+    label: "Prospects",
+    href: "/prospects",
+    icon: MapPin,
+    roles: ["admin", "direction", "agent", "gestionnaire"],
   },
   {
     label: "Contacts",
