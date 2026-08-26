@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getUtilisateurConnecte } from "@/services/auth";
 import { trouverOuCreerContact } from "@/services/contacts";
 import { creerBienSchema, modifierBienSchema } from "@/lib/validation/bien";
@@ -83,18 +84,35 @@ export async function creerBien(
     }
   }
 
-  // 2. Référence unique. On part du nombre de biens existants et on réessaie
-  //    en cas de collision (une référence peut être occupée par un bien
-  //    supprimé, invisible via la RLS).
-  const { count } = await supabase
-    .from("biens")
-    .select("id", { count: "exact", head: true });
-  const base = (count ?? 0) + 1;
+  // 2. Référence unique de la forme BN-<année>-<NNNN>. On repart du plus grand
+  //    numéro DÉJÀ attribué cette année pour l'agence — biens supprimés compris.
+  //    La contrainte d'unicité (agence_id, reference) porte sur toutes les lignes,
+  //    mais la RLS masque les biens supprimés : on lit donc le maximum via le
+  //    client admin (service_role), restreint à l'agence. Sans cela, un compteur
+  //    fondé sur le nombre de biens VISIBLES redescend après chaque suppression
+  //    et rejoue des références déjà prises. La boucle couvre les collisions de
+  //    concurrence (deux créations simultanées).
   const annee = new Date().getFullYear();
+  const prefixe = `BN-${annee}-`;
+
+  const admin = createAdminClient();
+  const { data: dernier } = await admin
+    .from("biens")
+    .select("reference")
+    .eq("agence_id", profil.agenceId)
+    .like("reference", `${prefixe}%`)
+    .order("reference", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const dernierNum = dernier
+    ? parseInt(dernier.reference.slice(prefixe.length), 10)
+    : 0;
+  const base = (Number.isFinite(dernierNum) ? dernierNum : 0) + 1;
 
   let bienId: string | null = null;
   for (let i = 0; i < 6 && !bienId; i++) {
-    const reference = `BN-${annee}-${String(base + i).padStart(4, "0")}`;
+    const reference = `${prefixe}${String(base + i).padStart(4, "0")}`;
     const { data, error } = await supabase
       .from("biens")
       .insert({
