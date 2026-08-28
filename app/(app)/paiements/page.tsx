@@ -5,6 +5,7 @@ import {
 } from "@/types/echeance";
 import { moisCourant } from "@/types/suivi";
 import { formatFcfa } from "@/lib/utils/format";
+import OngletsPaiements from "@/components/metier/OngletsPaiements";
 import FiltresSuivi from "@/components/metier/FiltresSuivi";
 import LigneSuiviLoyer from "@/components/metier/LigneSuiviLoyer";
 
@@ -37,6 +38,8 @@ export default async function PaiementsPage({
           Échéances du mois, retards et relances
         </p>
       </div>
+
+      <OngletsPaiements actif="echeances" />
 
       {/* Totaux du mois */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
