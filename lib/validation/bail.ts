@@ -38,3 +38,15 @@ export const creerBailSchema = z.object({
 });
 
 export type CreerBailInput = z.infer<typeof creerBailSchema>;
+
+/**
+ * Édition d'un bail : mêmes conditions que la création, sans le bien ni le
+ * locataire (ils ne se changent pas depuis la fiche du bail).
+ */
+export const modifierBailSchema = creerBailSchema.omit({
+  bienId: true,
+  locataireNom: true,
+  locataireTelephone: true,
+});
+
+export type ModifierBailInput = z.infer<typeof modifierBailSchema>;

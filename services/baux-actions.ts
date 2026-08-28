@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUtilisateurConnecte } from "@/services/auth";
 import { trouverOuCreerContact } from "@/services/contacts";
-import { creerBailSchema } from "@/lib/validation/bail";
+import { creerBailSchema, modifierBailSchema } from "@/lib/validation/bail";
 import { transitionAutorisee } from "@/services/statuts-bail";
 import { genererEcheances } from "@/services/echeances";
 import type { StatutBail } from "@/types/bail";
@@ -123,6 +123,79 @@ export async function creerBail(
 
   revalidatePath("/gestion-locative");
   redirect("/gestion-locative");
+}
+
+/**
+ * Modifie les conditions d'un bail encore en brouillon (loyer, charges, caution,
+ * échéance, mode, dates, notes). Interdit dès qu'il est activé : ses échéances
+ * sont alors figées, changer le loyer les désynchroniserait. Le bien et le
+ * locataire ne se modifient pas ici.
+ */
+export async function modifierBail(
+  id: string,
+  _prevState: CreerBailState,
+  formData: FormData
+): Promise<CreerBailState> {
+  const profil = await getUtilisateurConnecte();
+  if (!profil || !profil.actif) return { error: "Accès refusé." };
+
+  const supabase = await createClient();
+
+  const { data: bail } = await supabase
+    .from("baux")
+    .select("statut")
+    .eq("id", id)
+    .is("supprime_le", null)
+    .maybeSingle();
+
+  if (!bail) return { error: "Bail introuvable." };
+  if (bail.statut !== "brouillon") {
+    return {
+      error:
+        "Seul un bail en brouillon peut être modifié (ses échéances sont figées une fois activé).",
+    };
+  }
+
+  const parsed = modifierBailSchema.safeParse({
+    dateDebut: formData.get("dateDebut") || undefined,
+    dateFin: formData.get("dateFin") || undefined,
+    loyerMensuel: formData.get("loyerMensuel"),
+    chargesMensuelles: formData.get("chargesMensuelles") || undefined,
+    cautionMois: formData.get("cautionMois") || undefined,
+    jourEcheance: formData.get("jourEcheance") || undefined,
+    modePaiement: formData.get("modePaiement") || undefined,
+    notes: formData.get("notes") || undefined,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Données invalides." };
+  }
+
+  const d = parsed.data;
+  if (d.dateDebut && d.dateFin && d.dateFin < d.dateDebut) {
+    return { error: "La date de fin ne peut pas précéder la date de début." };
+  }
+
+  const { error } = await supabase
+    .from("baux")
+    .update({
+      date_debut: d.dateDebut || null,
+      date_fin: d.dateFin || null,
+      loyer_mensuel: d.loyerMensuel,
+      charges_mensuelles: d.chargesMensuelles,
+      caution_mois: d.cautionMois,
+      jour_echeance: d.jourEcheance,
+      mode_paiement: d.modePaiement ?? null,
+      notes: d.notes ?? null,
+    })
+    .eq("id", id)
+    .is("supprime_le", null);
+
+  if (error) return { error: "Modification du bail impossible." };
+
+  revalidatePath("/gestion-locative");
+  revalidatePath(`/gestion-locative/${id}`);
+  redirect(`/gestion-locative/${id}`);
 }
 
 // Statuts de bien qui empêchent l'activation d'un bail (rien à louer).

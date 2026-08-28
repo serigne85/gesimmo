@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Phone, MessageCircle } from "lucide-react";
+import { ArrowLeft, Phone, MessageCircle, Pencil } from "lucide-react";
 import { getBailById } from "@/services/baux";
 import { getEcheancesBail } from "@/services/echeances";
 import { listReversementsBail } from "@/services/reversements";
@@ -63,14 +63,25 @@ export default async function BailDetailPage({
       </Link>
 
       {/* En-tête */}
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
-          {bail.reference}
-        </span>
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-          {bail.locataireNom}
-        </h1>
-        <BadgeStatutBail statut={bail.statut} />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+            {bail.reference}
+          </span>
+          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+            {bail.locataireNom}
+          </h1>
+          <BadgeStatutBail statut={bail.statut} />
+        </div>
+        {bail.statut === "brouillon" && (
+          <Link
+            href={`/gestion-locative/${bail.id}/modifier`}
+            className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+          >
+            <Pencil className="h-4 w-4" aria-hidden="true" />
+            Modifier
+          </Link>
+        )}
       </div>
 
       {/* Conditions financières */}

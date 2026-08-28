@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Wallet } from "lucide-react";
 import { listBaux, BAUX_PAGE_SIZE } from "@/services/baux";
 import LigneBail from "@/components/metier/LigneBail";
 
@@ -29,13 +29,22 @@ export default async function GestionLocativePage({
             {total} bail{total > 1 ? "s" : ""} en portefeuille
           </p>
         </div>
-        <Link
-          href="/gestion-locative/nouveau"
-          className="flex items-center gap-2 rounded-md bg-blue-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-800"
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" />
-          Nouveau bail
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/gestion-locative/reversements"
+            className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+          >
+            <Wallet className="h-4 w-4" aria-hidden="true" />
+            Reversements
+          </Link>
+          <Link
+            href="/gestion-locative/nouveau"
+            className="flex items-center gap-2 rounded-md bg-blue-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-800"
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Nouveau bail
+          </Link>
+        </div>
       </div>
 
       {rows.length === 0 ? (

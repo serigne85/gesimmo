@@ -36,3 +36,25 @@ export type ReversementLigne = {
   mode: ModePaiement;
   note: string | null;
 };
+
+/** Une ligne de la vue globale des reversements (contexte joint). */
+export type ReversementGlobal = {
+  id: string;
+  periode: string;
+  montantLoyer: number;
+  commission: number;
+  montantReverse: number;
+  dateReversement: string;
+  bailId: string;
+  bailReference: string;
+  bienReference: string;
+  bienTitre: string | null;
+  proprietaireNom: string;
+};
+
+/** Vue globale d'un mois de reversements. */
+export type ReversementsMois = {
+  mois: string; // AAAA-MM
+  rows: ReversementGlobal[];
+  totaux: { loyer: number; commission: number; reverse: number };
+};
