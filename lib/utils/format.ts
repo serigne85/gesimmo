@@ -15,6 +15,16 @@ export function formatDate(iso: string | null | undefined): string {
   });
 }
 
+/** Formate un mois en Africa/Dakar (« septembre 2026 »). */
+export function formatMois(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    timeZone: "Africa/Dakar",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 /** Lien d'appel téléphonique. */
 export function telHref(telephone: string): string {
   return `tel:${telephone.replace(/\s/g, "")}`;
