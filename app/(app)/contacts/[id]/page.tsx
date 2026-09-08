@@ -12,15 +12,22 @@ import { getContactDetail } from "@/services/contacts";
 import type {
   BienLieContact,
   BailLieContact,
+  DemandeLieeContact,
   MiseEnRelationLieeContact,
 } from "@/types/contact";
 import { formatFcfa, formatDate, telHref, whatsappHref } from "@/lib/utils/format";
 import type { StatutBien } from "@/types/bien";
 import type { StatutBail } from "@/types/bail";
 import type { StatutMiseEnRelation } from "@/types/mise-en-relation";
+import {
+  OBJECTIF_DEMANDE_LABELS,
+  type ObjectifDemande,
+  type StatutDemande,
+} from "@/types/demande";
 import BadgeDesignation from "@/components/metier/BadgeDesignation";
 import BadgeStatutBien from "@/components/metier/BadgeStatutBien";
 import BadgeStatutBail from "@/components/metier/BadgeStatutBail";
+import BadgeStatutDemande from "@/components/metier/BadgeStatutDemande";
 import BadgeStatutMiseEnRelation from "@/components/metier/BadgeStatutMiseEnRelation";
 
 /** Fiche détail d'un contact. Server Component (RLS active). */
@@ -127,6 +134,14 @@ export default async function ContactDetailPage({
         </Section>
       )}
 
+      {contact.demandes.length > 0 && (
+        <Section titre={`Demandes (${contact.demandes.length})`}>
+          {contact.demandes.map((d) => (
+            <LigneDemande key={d.id} demande={d} />
+          ))}
+        </Section>
+      )}
+
       {contact.misesEnRelation.length > 0 && (
         <Section titre={`Mises en relation (${contact.misesEnRelation.length})`}>
           {contact.misesEnRelation.map((m) => (
@@ -138,9 +153,10 @@ export default async function ContactDetailPage({
       {contact.biensProprietaire.length === 0 &&
         contact.biensAssocie.length === 0 &&
         contact.baux.length === 0 &&
+        contact.demandes.length === 0 &&
         contact.misesEnRelation.length === 0 && (
           <div className="rounded-lg border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
-            Aucun bien, bail ni mise en relation rattaché à ce contact.
+            Aucun bien, bail, demande ni mise en relation rattaché à ce contact.
           </div>
         )}
     </div>
@@ -196,6 +212,20 @@ function LigneBail({ bail }: { bail: BailLieContact }) {
         {formatFcfa(bail.loyerMensuel)}/mois
       </div>
       <BadgeStatutBail statut={bail.statut as StatutBail} />
+    </Link>
+  );
+}
+
+function LigneDemande({ demande }: { demande: DemandeLieeContact }) {
+  return (
+    <Link
+      href={`/demandes/${demande.id}`}
+      className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+    >
+      <span className="truncate text-sm text-zinc-800 dark:text-zinc-200">
+        {OBJECTIF_DEMANDE_LABELS[demande.objectif as ObjectifDemande]}
+      </span>
+      <BadgeStatutDemande statut={demande.statut as StatutDemande} />
     </Link>
   );
 }

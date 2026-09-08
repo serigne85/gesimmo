@@ -7,6 +7,7 @@ import type {
   DesignationContact,
   BienLieContact,
   BailLieContact,
+  DemandeLieeContact,
   MiseEnRelationLieeContact,
 } from "@/types/contact";
 import { DESIGNATIONS_CONTACT } from "@/types/contact";
@@ -55,17 +56,19 @@ export async function listContactsUnifies(): Promise<ContactUnifie[]> {
     { data: contacts, error: eC },
     { data: biens, error: eB },
     { data: baux, error: eBa },
+    { data: demandes, error: eD },
     { data: partenaires, error: eP },
     { data: prospections, error: ePr },
   ] = await Promise.all([
     supabase.from("contacts").select("id, nom_complet, telephone").is("supprime_le", null),
     supabase.from("biens").select("proprietaire_id, contact_id").is("supprime_le", null),
     supabase.from("baux").select("locataire_id").is("supprime_le", null),
+    supabase.from("demandes").select("contact_id").is("supprime_le", null),
     supabase.from("partenaires").select("nom, telephone").is("supprime_le", null),
     supabase.from("prospections").select("nom_complet, telephone").is("supprime_le", null),
   ]);
 
-  const erreur = eC || eB || eBa || eP || ePr;
+  const erreur = eC || eB || eBa || eD || eP || ePr;
   if (erreur) {
     throw new Error(`Lecture de l'annuaire impossible : ${erreur.message}`);
   }
@@ -74,12 +77,16 @@ export async function listContactsUnifies(): Promise<ContactUnifie[]> {
   const proprietaires = new Set<string>();
   const associes = new Set<string>();
   const locataires = new Set<string>();
+  const demandeurs = new Set<string>();
   (biens ?? []).forEach((b) => {
     if (b.proprietaire_id) proprietaires.add(b.proprietaire_id as string);
     if (b.contact_id) associes.add(b.contact_id as string);
   });
   (baux ?? []).forEach((b) => {
     if (b.locataire_id) locataires.add(b.locataire_id as string);
+  });
+  (demandes ?? []).forEach((d) => {
+    if (d.contact_id) demandeurs.add(d.contact_id as string);
   });
 
   const parCle = new Map<string, ContactUnifie>();
@@ -120,6 +127,7 @@ export async function listContactsUnifies(): Promise<ContactUnifie[]> {
     if (proprietaires.has(id)) d.push("proprietaire");
     if (associes.has(id)) d.push("contact_associe");
     if (locataires.has(id)) d.push("locataire");
+    if (demandeurs.has(id)) d.push("demandeur");
     fusionner(c.nom_complet as string, c.telephone as string, d, null, id);
   });
 
@@ -170,13 +178,20 @@ export async function getContactDetail(
   if (error) throw new Error(`Lecture du contact impossible : ${error.message}`);
   if (!contact) return null;
 
-  // Demandes du contact → sert à retrouver ses mises en relation.
+  // Demandes du contact (comme demandeur) → sert aussi à retrouver ses mises en
+  // relation.
   const { data: demandes } = await supabase
     .from("demandes")
-    .select("id")
+    .select("id, objectif, statut")
     .eq("contact_id", id)
-    .is("supprime_le", null);
+    .is("supprime_le", null)
+    .order("cree_le", { ascending: false });
   const demandeIds = (demandes ?? []).map((d) => d.id as string);
+  const demandesLiees: DemandeLieeContact[] = (demandes ?? []).map((d) => ({
+    id: d.id as string,
+    objectif: d.objectif as string,
+    statut: d.statut as string,
+  }));
 
   const [
     { data: biensProp },
@@ -254,6 +269,7 @@ export async function getContactDetail(
   if (biensProprietaire.length > 0) designations.push("proprietaire");
   if (biensAssocie.length > 0) designations.push("contact_associe");
   if (bauxLies.length > 0) designations.push("locataire");
+  if (demandesLiees.length > 0) designations.push("demandeur");
   if (designations.length === 0) designations.push("contact");
 
   return {
@@ -265,6 +281,7 @@ export async function getContactDetail(
     biensProprietaire,
     biensAssocie,
     baux: bauxLies,
+    demandes: demandesLiees,
     misesEnRelation,
   };
 }

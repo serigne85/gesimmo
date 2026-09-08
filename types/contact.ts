@@ -12,6 +12,7 @@ export type DesignationContact =
   | "proprietaire"
   | "contact_associe"
   | "locataire"
+  | "demandeur"
   | "partenaire"
   | "prospect"
   | "contact";
@@ -21,6 +22,7 @@ export const DESIGNATIONS_CONTACT: DesignationContact[] = [
   "proprietaire",
   "contact_associe",
   "locataire",
+  "demandeur",
   "partenaire",
   "prospect",
   "contact",
@@ -30,6 +32,7 @@ export const DESIGNATION_CONTACT_LABELS: Record<DesignationContact, string> = {
   proprietaire: "Propriétaire",
   contact_associe: "Contact associé",
   locataire: "Locataire",
+  demandeur: "Demandeur",
   partenaire: "Partenaire",
   prospect: "Prospect",
   contact: "Contact",
@@ -64,6 +67,13 @@ export type BailLieContact = {
   statut: string;
 };
 
+/** Une demande liée à un contact (comme demandeur). */
+export type DemandeLieeContact = {
+  id: string;
+  objectif: string;
+  statut: string;
+};
+
 /** Une mise en relation liée à un contact (via ses demandes). */
 export type MiseEnRelationLieeContact = {
   id: string;
@@ -81,5 +91,6 @@ export type ContactDetail = {
   biensProprietaire: BienLieContact[];
   biensAssocie: BienLieContact[];
   baux: BailLieContact[];
+  demandes: DemandeLieeContact[];
   misesEnRelation: MiseEnRelationLieeContact[];
 };
