@@ -1,5 +1,30 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
+
+/** Option légère d'un contact pour un sélecteur. */
+export type ContactOption = { id: string; nomComplet: string; telephone: string };
+
+/**
+ * Contacts de l'agence, forme légère pour un sélecteur (rendez-vous, etc.).
+ * RLS : cloisonné automatiquement à l'agence de l'utilisateur.
+ */
+export async function listContactsOptions(): Promise<ContactOption[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("contacts")
+    .select("id, nom_complet, telephone")
+    .is("supprime_le", null)
+    .order("nom_complet", { ascending: true });
+
+  if (error) throw new Error(`Lecture des contacts impossible : ${error.message}`);
+
+  return (data ?? []).map((c) => ({
+    id: c.id as string,
+    nomComplet: c.nom_complet as string,
+    telephone: c.telephone as string,
+  }));
+}
 
 /**
  * Trouve un contact par téléphone dans l'agence, ou le crée s'il n'existe pas.

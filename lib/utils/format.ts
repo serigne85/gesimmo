@@ -15,6 +15,34 @@ export function formatDate(iso: string | null | undefined): string {
   });
 }
 
+/** Formate une date et une heure en Africa/Dakar (JJ/MM/AAAA à HH:mm). */
+export function formatDateHeure(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  const date = d.toLocaleDateString("fr-FR", {
+    timeZone: "Africa/Dakar",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+  const heure = d.toLocaleTimeString("fr-FR", {
+    timeZone: "Africa/Dakar",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return `${date} à ${heure}`;
+}
+
+/** Formate uniquement l'heure en Africa/Dakar (HH:mm). */
+export function formatHeure(iso: string | null | undefined): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleTimeString("fr-FR", {
+    timeZone: "Africa/Dakar",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 /** Formate un mois en Africa/Dakar (« septembre 2026 »). */
 export function formatMois(iso: string | null | undefined): string {
   if (!iso) return "—";
