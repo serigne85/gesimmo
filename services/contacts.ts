@@ -1,7 +1,14 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import type { ContactUnifie, DesignationContact } from "@/types/contact";
+import type {
+  ContactUnifie,
+  ContactDetail,
+  DesignationContact,
+  BienLieContact,
+  BailLieContact,
+  MiseEnRelationLieeContact,
+} from "@/types/contact";
 import { DESIGNATIONS_CONTACT } from "@/types/contact";
 
 /** Option légère d'un contact pour un sélecteur. */
@@ -82,7 +89,8 @@ export async function listContactsUnifies(): Promise<ContactUnifie[]> {
     nom: string,
     telephone: string,
     designations: DesignationContact[],
-    href: string | null
+    href: string | null,
+    contactId: string | null
   ) {
     const cle = cleTelephone(telephone) || `nom:${nom.toLowerCase()}`;
     const existant = parCle.get(cle);
@@ -91,6 +99,7 @@ export async function listContactsUnifies(): Promise<ContactUnifie[]> {
         if (!existant.designations.includes(d)) existant.designations.push(d);
       }
       if (!existant.href && href) existant.href = href;
+      if (!existant.contactId && contactId) existant.contactId = contactId;
       if (!existant.nomComplet && nom) existant.nomComplet = nom;
     } else {
       parCle.set(cle, {
@@ -98,6 +107,7 @@ export async function listContactsUnifies(): Promise<ContactUnifie[]> {
         nomComplet: nom,
         telephone,
         designations: [...designations],
+        contactId,
         href,
       });
     }
@@ -110,15 +120,15 @@ export async function listContactsUnifies(): Promise<ContactUnifie[]> {
     if (proprietaires.has(id)) d.push("proprietaire");
     if (associes.has(id)) d.push("contact_associe");
     if (locataires.has(id)) d.push("locataire");
-    fusionner(c.nom_complet as string, c.telephone as string, d, null);
+    fusionner(c.nom_complet as string, c.telephone as string, d, null, id);
   });
 
   // Partenaires et prospects (tables dédiées).
   (partenaires ?? []).forEach((p) =>
-    fusionner(p.nom as string, (p.telephone as string) ?? "", ["partenaire"], null)
+    fusionner(p.nom as string, (p.telephone as string) ?? "", ["partenaire"], null, null)
   );
   (prospections ?? []).forEach((p) =>
-    fusionner(p.nom_complet as string, p.telephone as string, ["prospect"], null)
+    fusionner(p.nom_complet as string, p.telephone as string, ["prospect"], null, null)
   );
 
   // Repli « contact » pour les entrées sans aucune désignation, puis tri des
@@ -131,6 +141,132 @@ export async function listContactsUnifies(): Promise<ContactUnifie[]> {
   });
   lignes.sort((a, b) => a.nomComplet.localeCompare(b.nomComplet, "fr"));
   return lignes;
+}
+
+/** Extrait un objet lié qu'il soit renvoyé comme objet ou comme tableau. */
+function premier<T>(rel: T | T[] | null | undefined): T | null {
+  if (Array.isArray(rel)) return rel[0] ?? null;
+  return rel ?? null;
+}
+
+/**
+ * Fiche détail d'un contact (entité de la table `contacts`) : ses biens (comme
+ * propriétaire et comme contact associé), ses baux (comme locataire) et les
+ * mises en relation nées de ses demandes. Renvoie null si absent, supprimé, ou
+ * hors agence (RLS). Les désignations sont déduites des relations trouvées.
+ */
+export async function getContactDetail(
+  id: string
+): Promise<ContactDetail | null> {
+  const supabase = await createClient();
+
+  const { data: contact, error } = await supabase
+    .from("contacts")
+    .select("id, nom_complet, telephone, cree_le")
+    .eq("id", id)
+    .is("supprime_le", null)
+    .maybeSingle();
+
+  if (error) throw new Error(`Lecture du contact impossible : ${error.message}`);
+  if (!contact) return null;
+
+  // Demandes du contact → sert à retrouver ses mises en relation.
+  const { data: demandes } = await supabase
+    .from("demandes")
+    .select("id")
+    .eq("contact_id", id)
+    .is("supprime_le", null);
+  const demandeIds = (demandes ?? []).map((d) => d.id as string);
+
+  const [
+    { data: biensProp },
+    { data: biensAsso },
+    { data: baux },
+    mer,
+  ] = await Promise.all([
+    supabase
+      .from("biens")
+      .select("id, reference, titre, statut")
+      .eq("proprietaire_id", id)
+      .is("supprime_le", null)
+      .order("reference", { ascending: true }),
+    supabase
+      .from("biens")
+      .select("id, reference, titre, statut")
+      .eq("contact_id", id)
+      .is("supprime_le", null)
+      .order("reference", { ascending: true }),
+    supabase
+      .from("baux")
+      .select("id, reference, loyer_mensuel, statut, bien:biens(reference)")
+      .eq("locataire_id", id)
+      .is("supprime_le", null)
+      .order("reference", { ascending: true }),
+    demandeIds.length > 0
+      ? supabase
+          .from("mises_en_relation")
+          .select("id, statut, partenaire:partenaires(nom)")
+          .in("demande_id", demandeIds)
+          .is("supprime_le", null)
+      : Promise.resolve({ data: [] as Record<string, unknown>[] }),
+  ]);
+
+  const versBien = (rows: Record<string, unknown>[] | null): BienLieContact[] =>
+    (rows ?? []).map((b) => ({
+      id: b.id as string,
+      reference: b.reference as string,
+      titre: (b.titre as string | null) ?? null,
+      statut: b.statut as string,
+    }));
+
+  const biensProprietaire = versBien(biensProp as Record<string, unknown>[] | null);
+  const biensAssocie = versBien(biensAsso as Record<string, unknown>[] | null);
+
+  const bauxLies: BailLieContact[] = (
+    (baux ?? []) as unknown as Record<string, unknown>[]
+  ).map((b) => {
+    const bien = premier(
+      b.bien as Record<string, unknown> | Record<string, unknown>[] | null
+    );
+    return {
+      id: b.id as string,
+      reference: b.reference as string,
+      bienReference: (bien?.reference as string | null) ?? null,
+      loyerMensuel: (b.loyer_mensuel as number) ?? 0,
+      statut: b.statut as string,
+    };
+  });
+
+  const misesEnRelation: MiseEnRelationLieeContact[] = (
+    ((mer.data ?? []) as unknown as Record<string, unknown>[])
+  ).map((m) => {
+    const partenaire = premier(
+      m.partenaire as Record<string, unknown> | Record<string, unknown>[] | null
+    );
+    return {
+      id: m.id as string,
+      statut: m.statut as string,
+      partenaireNom: (partenaire?.nom as string) ?? "",
+    };
+  });
+
+  const designations: DesignationContact[] = [];
+  if (biensProprietaire.length > 0) designations.push("proprietaire");
+  if (biensAssocie.length > 0) designations.push("contact_associe");
+  if (bauxLies.length > 0) designations.push("locataire");
+  if (designations.length === 0) designations.push("contact");
+
+  return {
+    id: contact.id as string,
+    nomComplet: contact.nom_complet as string,
+    telephone: contact.telephone as string,
+    creeLe: contact.cree_le as string,
+    designations,
+    biensProprietaire,
+    biensAssocie,
+    baux: bauxLies,
+    misesEnRelation,
+  };
 }
 
 /**

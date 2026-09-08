@@ -41,6 +41,45 @@ export type ContactUnifie = {
   nomComplet: string;
   telephone: string;
   designations: DesignationContact[];
+  /** Id dans la table `contacts` si l'entrée en provient (→ fiche /contacts/[id]). */
+  contactId: string | null;
   /** Lien vers la fiche la plus spécifique (partenaire/prospect), si elle existe. */
   href: string | null;
+};
+
+/** Un bien lié à un contact dans sa fiche détail. */
+export type BienLieContact = {
+  id: string;
+  reference: string;
+  titre: string | null;
+  statut: string;
+};
+
+/** Un bail lié à un contact (comme locataire). */
+export type BailLieContact = {
+  id: string;
+  reference: string;
+  bienReference: string | null;
+  loyerMensuel: number;
+  statut: string;
+};
+
+/** Une mise en relation liée à un contact (via ses demandes). */
+export type MiseEnRelationLieeContact = {
+  id: string;
+  statut: string;
+  partenaireNom: string;
+};
+
+/** Fiche détail d'un contact (entité de la table `contacts`). */
+export type ContactDetail = {
+  id: string;
+  nomComplet: string;
+  telephone: string;
+  creeLe: string;
+  designations: DesignationContact[];
+  biensProprietaire: BienLieContact[];
+  biensAssocie: BienLieContact[];
+  baux: BailLieContact[];
+  misesEnRelation: MiseEnRelationLieeContact[];
 };

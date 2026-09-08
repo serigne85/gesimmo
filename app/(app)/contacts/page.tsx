@@ -118,7 +118,11 @@ export default async function ContactsPage({
                   className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                 >
                   <td className="px-3 py-2 font-medium text-zinc-900 dark:text-zinc-100">
-                    {c.href ? (
+                    {c.contactId ? (
+                      <Link href={`/contacts/${c.contactId}`} className="hover:underline">
+                        {c.nomComplet || "—"}
+                      </Link>
+                    ) : c.href ? (
                       <Link href={c.href} className="hover:underline">
                         {c.nomComplet || "—"}
                       </Link>
