@@ -6,6 +6,8 @@ import {
   FileSignature,
   Target,
   Search,
+  Handshake,
+  Waypoints,
   ListTodo,
   Calendar,
   KeyRound,
@@ -81,6 +83,18 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/opportunites",
     icon: Target,
     roles: ["admin", "direction", "agent"],
+  },
+  {
+    label: "Partenaires",
+    href: "/partenaires",
+    icon: Handshake,
+    roles: ["admin", "direction", "agent", "gestionnaire"],
+  },
+  {
+    label: "Mises en relation",
+    href: "/mises-en-relation",
+    icon: Waypoints,
+    roles: ["admin", "direction", "agent", "gestionnaire"],
   },
   {
     label: "Tâches",

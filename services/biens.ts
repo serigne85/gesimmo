@@ -33,6 +33,37 @@ function premier<T>(rel: T | T[] | null | undefined): T | null {
   return rel ?? null;
 }
 
+/** Option légère d'un bien pour un sélecteur (mise en relation entrante). */
+export type BienOption = {
+  id: string;
+  reference: string;
+  titre: string | null;
+  type: TypeBien;
+};
+
+/**
+ * Biens proposables à un partenaire : non supprimés et hors cycle terminal
+ * (vendu / loué / archivé). Forme légère pour un sélecteur.
+ */
+export async function listBiensOptions(): Promise<BienOption[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("biens")
+    .select("id, reference, titre, type")
+    .is("supprime_le", null)
+    .not("statut", "in", "(vendu,loue,archive)")
+    .order("reference", { ascending: true });
+
+  if (error) throw new Error(`Lecture des biens impossible : ${error.message}`);
+
+  return (data ?? []).map((b) => ({
+    id: b.id as string,
+    reference: b.reference as string,
+    titre: (b.titre as string | null) ?? null,
+    type: b.type as TypeBien,
+  }));
+}
+
 /**
  * Liste paginée des biens de l'agence (RLS : cloisonné automatiquement).
  * Les libellés de zone/ville et le propriétaire sont joints en une requête.

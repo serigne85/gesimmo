@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Phone, MessageCircle, Pencil } from "lucide-react";
+import { ArrowLeft, Phone, MessageCircle, Pencil, Handshake } from "lucide-react";
 import { getDemandeById } from "@/services/demandes";
 import { biensCorrespondants } from "@/services/matching";
 import { OBJECTIF_DEMANDE_LABELS } from "@/types/demande";
@@ -59,13 +59,22 @@ export default async function DemandeDetailPage({
           </span>
           <BadgeStatutDemande statut={demande.statut} />
         </div>
-        <Link
-          href={`/demandes/${demande.id}/modifier`}
-          className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
-        >
-          <Pencil className="h-4 w-4" aria-hidden="true" />
-          Modifier
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/demandes/${demande.id}/soumettre`}
+            className="inline-flex items-center gap-2 rounded-md bg-blue-900 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-800"
+          >
+            <Handshake className="h-4 w-4" aria-hidden="true" />
+            Soumettre à un partenaire
+          </Link>
+          <Link
+            href={`/demandes/${demande.id}/modifier`}
+            className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+          >
+            <Pencil className="h-4 w-4" aria-hidden="true" />
+            Modifier
+          </Link>
+        </div>
       </div>
 
       {/* Critères */}
