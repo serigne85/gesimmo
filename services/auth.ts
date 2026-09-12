@@ -22,19 +22,28 @@ export async function getUtilisateurConnecte(): Promise<UtilisateurProfil | null
 
   const { data, error } = await supabase
     .from("utilisateurs")
-    .select("id, agence_id, nom_complet, email, role, actif")
+    .select("id, agence_id, nom_complet, email, role, actif, super_admin")
     .eq("id", user.id)
     .is("supprime_le", null)
     .single();
 
   if (error || !data) return null;
 
+  // Agence EFFECTIVE = ce que la RLS appliquera. On la lit via la fonction SQL
+  // agence_courante() : source unique de vérité, impossible que l'app et la RLS
+  // divergent (un écart provoquerait des écritures rejetées). Repli sur l'agence
+  // d'origine si l'appel échoue.
+  const { data: effective } = await supabase.rpc("agence_courante");
+  const agenceId =
+    typeof effective === "string" && effective ? effective : data.agence_id;
+
   return {
     id: data.id,
-    agenceId: data.agence_id,
+    agenceId,
     nomComplet: data.nom_complet,
     email: data.email,
     role: data.role,
     actif: data.actif,
+    superAdmin: data.super_admin ?? false,
   };
 }

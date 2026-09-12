@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { getNavigationForRole } from "@/lib/navigation";
 import type { Role } from "@/types/roles";
+import type { AgenceOption } from "@/types/utilisateur";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
@@ -18,6 +19,10 @@ type AppShellProps = {
   role: Role;
   /** Nom affiché dans la topbar. */
   userName: string;
+  /** Agences proposées à la bascule (super-admin seulement ; vide sinon). */
+  agences: AgenceOption[];
+  /** Agence active courante. */
+  agenceActiveId: string;
   /** Le contenu de la page en cours. */
   children: React.ReactNode;
 };
@@ -32,7 +37,13 @@ type AppShellProps = {
  * Sur grand écran (lg+), la sidebar est fixe à gauche.
  * Sur mobile, elle est cachée et s'ouvre en tiroir par-dessus le contenu.
  */
-export default function AppShell({ role, userName, children }: AppShellProps) {
+export default function AppShell({
+  role,
+  userName,
+  agences,
+  agenceActiveId,
+  children,
+}: AppShellProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const navItems = getNavigationForRole(role);
 
@@ -70,7 +81,12 @@ export default function AppShell({ role, userName, children }: AppShellProps) {
 
       {/* Colonne de droite : topbar + contenu défilant */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar onOpenMenu={() => setIsDrawerOpen(true)} userName={userName} />
+        <Topbar
+          onOpenMenu={() => setIsDrawerOpen(true)}
+          userName={userName}
+          agences={agences}
+          agenceActiveId={agenceActiveId}
+        />
         <main className="flex-1 overflow-y-auto bg-zinc-50 p-4 sm:p-6 dark:bg-zinc-900">
           {children}
         </main>

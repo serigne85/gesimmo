@@ -3,12 +3,18 @@
 import Link from "next/link";
 import { LogOut, Menu, Search } from "lucide-react";
 import { deconnexion } from "@/services/auth-actions";
+import SelecteurAgence from "./SelecteurAgence";
+import type { AgenceOption } from "@/types/utilisateur";
 
 type TopbarProps = {
   /** Ouvre le tiroir de navigation sur mobile. */
   onOpenMenu: () => void;
   /** Nom de l'utilisateur connecté. */
   userName: string;
+  /** Agences proposées à la bascule (super-admin seulement ; vide sinon). */
+  agences: AgenceOption[];
+  /** Agence active courante. */
+  agenceActiveId: string;
 };
 
 /** Deux premières initiales à partir du nom complet (ex : "Awa Ndiaye" → "AN"). */
@@ -29,7 +35,12 @@ function getInitials(name: string): string {
  * NOTE : le champ de recherche est VISUEL uniquement à ce stade. Aucune logique
  * n'est branchée — on le câblera au lot 2 (recherche biens / contacts).
  */
-export default function Topbar({ onOpenMenu, userName }: TopbarProps) {
+export default function Topbar({
+  onOpenMenu,
+  userName,
+  agences,
+  agenceActiveId,
+}: TopbarProps) {
   return (
     <header className="flex h-16 items-center gap-3 border-b border-zinc-200 bg-white px-4 dark:border-zinc-800 dark:bg-zinc-950">
       {/* Bouton menu : visible seulement sous le point de rupture lg (mobile/tablette). */}
@@ -56,8 +67,9 @@ export default function Topbar({ onOpenMenu, userName }: TopbarProps) {
         />
       </div>
 
-      {/* Zone profil : initiales + nom (lien vers le compte), et déconnexion */}
+      {/* Zone profil : sélecteur d'agence (super-admin), profil, déconnexion */}
       <div className="ml-auto flex items-center gap-3">
+        <SelecteurAgence agences={agences} agenceActiveId={agenceActiveId} />
         {/* Le nom mène à la page de gestion de son propre mot de passe. */}
         <Link
           href="/mon-compte/mot-de-passe"

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { getUtilisateurConnecte } from "@/services/auth";
+import { listAgencesPourBascule } from "@/services/agences";
 
 /**
  * Layout partagé par toutes les pages de l'application protégée.
@@ -25,8 +26,17 @@ export default async function AppLayout({
     redirect("/connexion");
   }
 
+  // Sélecteur d'agence : uniquement pour le super-admin (les autres n'ont rien
+  // à basculer, on évite la requête).
+  const agences = profil.superAdmin ? await listAgencesPourBascule() : [];
+
   return (
-    <AppShell role={profil.role} userName={profil.nomComplet}>
+    <AppShell
+      role={profil.role}
+      userName={profil.nomComplet}
+      agences={agences}
+      agenceActiveId={profil.agenceId}
+    >
       {children}
     </AppShell>
   );
