@@ -25,8 +25,11 @@ export function montantReverse(loyer: number, commission: number): number {
   return Math.max(0, loyer - commission);
 }
 
-/** Une ligne d'historique des reversements d'un bail. */
-export type ReversementLigne = {
+/**
+ * Reversement enregistré pour un propriétaire sur un mois (grain courant, cf.
+ * migration 0033). Les montants sont les totaux du mois (tous biens confondus).
+ */
+export type ReversementProprietaire = {
   id: string;
   periode: string;
   montantLoyer: number;
@@ -35,26 +38,4 @@ export type ReversementLigne = {
   dateReversement: string;
   mode: ModePaiement;
   note: string | null;
-};
-
-/** Une ligne de la vue globale des reversements (contexte joint). */
-export type ReversementGlobal = {
-  id: string;
-  periode: string;
-  montantLoyer: number;
-  commission: number;
-  montantReverse: number;
-  dateReversement: string;
-  bailId: string;
-  bailReference: string;
-  bienReference: string;
-  bienTitre: string | null;
-  proprietaireNom: string;
-};
-
-/** Vue globale d'un mois de reversements. */
-export type ReversementsMois = {
-  mois: string; // AAAA-MM
-  rows: ReversementGlobal[];
-  totaux: { loyer: number; commission: number; reverse: number };
 };

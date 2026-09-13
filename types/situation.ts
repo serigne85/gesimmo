@@ -1,8 +1,4 @@
-/** Un propriétaire proposé au sélecteur (ceux qui ont au moins un bail). */
-export type ProprietaireOption = {
-  id: string;
-  nomComplet: string;
-};
+import type { ReversementProprietaire } from "@/types/reversement";
 
 /** Une ligne de la situation : un bail (donc un locataire) du propriétaire. */
 export type SituationLigne = {
@@ -34,4 +30,6 @@ export type SituationProprietaire = {
   mois: string; // AAAA-MM
   lignes: SituationLigne[];
   totaux: SituationTotaux;
+  /** Le reversement enregistré pour ce propriétaire ce mois-ci, s'il existe. */
+  reversement: ReversementProprietaire | null;
 };

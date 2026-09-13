@@ -2,9 +2,11 @@ import { z } from "zod";
 import { MODES_PAIEMENT } from "@/types/bail";
 
 /**
- * Enregistrement d'un reversement au propriétaire. Le mois est au format AAAA-MM
- * (converti en 1er du mois côté action). Montants entiers de FCFA. La cohérence
- * « commission ≤ loyer » est vérifiée dans l'action.
+ * Enregistrement d'un reversement au propriétaire (grain : un propriétaire + un
+ * mois, cf. migration 0033). `montantLoyer` et `commission` sont les totaux du
+ * mois pour ce propriétaire. Le mois est au format AAAA-MM (converti en 1er du
+ * mois côté action). Montants entiers de FCFA. La cohérence « commission ≤ loyer »
+ * est vérifiée dans l'action.
  */
 export const creerReversementSchema = z.object({
   periode: z.string().regex(/^\d{4}-\d{2}$/, "Mois invalide."),

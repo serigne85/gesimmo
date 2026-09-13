@@ -1,23 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Phone, MessageCircle, Pencil } from "lucide-react";
+import { ArrowLeft, Phone, MessageCircle, Pencil, Wallet } from "lucide-react";
 import { getBailById } from "@/services/baux";
 import { getEcheancesBail } from "@/services/echeances";
-import { listReversementsBail } from "@/services/reversements";
 import {
   MODE_PAIEMENT_LABELS,
   loyerTotal,
   montantCaution,
 } from "@/types/bail";
 import { TYPE_MANDAT_LABELS } from "@/types/mandat";
-import { commissionSuggeree } from "@/types/reversement";
-import { formatFcfa, formatDate, formatMois, telHref, whatsappHref } from "@/lib/utils/format";
+import { formatFcfa, formatDate, telHref, whatsappHref } from "@/lib/utils/format";
 import BadgeStatutBail from "@/components/metier/BadgeStatutBail";
 import BadgeStatutBien from "@/components/metier/BadgeStatutBien";
 import ActionsStatutBail from "@/components/metier/ActionsStatutBail";
 import TableauEcheances from "@/components/metier/TableauEcheances";
-import FormulaireReversement from "@/components/metier/FormulaireReversement";
-import BoutonAnnulerReversement from "@/components/metier/BoutonAnnulerReversement";
 
 /**
  * Fiche détail d'un bail. Server Component : chargé côté serveur (RLS active).
@@ -34,19 +30,12 @@ export default async function BailDetailPage({
   if (!bail) notFound();
 
   const echeances = await getEcheancesBail(bail.id);
-  const reversements =
-    bail.statut === "actif" ? await listReversementsBail(bail.id) : [];
   // Date du jour en Africa/Dakar (AAAA-MM-JJ) pour dériver « en retard ».
   const aujourdhui = new Date().toLocaleDateString("en-CA", {
     timeZone: "Africa/Dakar",
   });
 
   const caution = montantCaution(bail.loyerMensuel, bail.cautionMois);
-  const commissionDefaut = commissionSuggeree(
-    bail.loyerMensuel,
-    bail.mandatCommissionValeur,
-    bail.mandatCommissionUnite
-  );
   const periode = [bail.dateDebut, bail.dateFin]
     .map((d) => (d ? formatDate(d) : null))
     .filter(Boolean)
@@ -134,53 +123,23 @@ export default async function BailDetailPage({
         <TableauEcheances echeances={echeances} aujourdhui={aujourdhui} />
       </div>
 
-      {/* Reversement au propriétaire (gérance) — baux actifs uniquement */}
+      {/* Reversement au propriétaire (gérance) — géré désormais dans Paiements */}
       {bail.statut === "actif" && (
         <div className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
             Reversement au propriétaire
           </h2>
           <p className="mb-3 text-xs text-zinc-400">
-            Gérance : loyer encaissé − commission de l&apos;agence = net reversé.
+            Les reversements se gèrent par propriétaire (un montant par mois, tous
+            ses biens confondus), dans le module Paiements.
           </p>
-          <FormulaireReversement
-            bailId={bail.id}
-            echeances={echeances.map((e) => ({
-              periode: e.periode,
-              montantRegle: e.montantRegle,
-            }))}
-            commissionSuggeree={commissionDefaut}
-            aujourdhui={aujourdhui}
-          />
-
-          {reversements.length > 0 && (
-            <div className="mt-4">
-              <h3 className="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                Historique ({reversements.length})
-              </h3>
-              <ul className="divide-y divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
-                {reversements.map((r) => (
-                  <li key={r.id} className="flex items-center justify-between gap-3 px-3 py-2">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium capitalize text-zinc-900 dark:text-zinc-100">
-                        {formatMois(r.periode)}
-                      </p>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        Loyer {formatFcfa(r.montantLoyer)} · commission{" "}
-                        {formatFcfa(r.commission)} · {formatDate(r.dateReversement)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                        {formatFcfa(r.montantReverse)}
-                      </span>
-                      <BoutonAnnulerReversement id={r.id} bailId={bail.id} />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <Link
+            href="/paiements/proprietaires"
+            className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+          >
+            <Wallet className="h-4 w-4" aria-hidden="true" />
+            Ouvrir les reversements
+          </Link>
         </div>
       )}
 

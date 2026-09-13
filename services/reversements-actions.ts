@@ -9,18 +9,14 @@ import { montantReverse } from "@/types/reversement";
 
 export type ReversementState = { error: string | null };
 
-/** Extrait un objet lié qu'il soit renvoyé comme objet ou comme tableau. */
-function premier<T>(rel: T | T[] | null | undefined): T | null {
-  if (Array.isArray(rel)) return rel[0] ?? null;
-  return rel ?? null;
-}
-
 /**
- * Enregistre un reversement de loyer au propriétaire pour un bail et un mois.
- * Le propriétaire est celui du bien ; le net reversé = loyer − commission.
+ * Enregistre le reversement d'un propriétaire pour un mois (grain courant, cf.
+ * 0033). `montantLoyer` et `commission` sont les totaux du mois. Le net reversé
+ * = loyer − commission. Un seul reversement vivant par propriétaire et par mois
+ * (index unique) : un doublon renvoie un message clair.
  */
-export async function creerReversement(
-  bailId: string,
+export async function creerReversementProprietaire(
+  proprietaireId: string,
   _prevState: ReversementState,
   formData: FormData
 ): Promise<ReversementState> {
@@ -47,27 +43,18 @@ export async function creerReversement(
 
   const supabase = await createClient();
 
-  // Bail + propriétaire du bien (RLS : forcément dans l'agence).
-  const { data: bail } = await supabase
-    .from("baux")
-    .select("id, biens(proprietaire_id)")
-    .eq("id", bailId)
+  // Le propriétaire doit exister dans l'agence (RLS : cloisonné).
+  const { data: proprio } = await supabase
+    .from("contacts")
+    .select("id")
+    .eq("id", proprietaireId)
     .is("supprime_le", null)
     .maybeSingle();
-
-  if (!bail) return { error: "Bail introuvable." };
-  const bien = premier(
-    (bail as Record<string, unknown>).biens as
-      | Record<string, unknown>
-      | Record<string, unknown>[]
-      | null
-  );
-  const proprietaireId = bien?.proprietaire_id as string | undefined;
-  if (!proprietaireId) return { error: "Propriétaire du bien introuvable." };
+  if (!proprio) return { error: "Propriétaire introuvable." };
 
   const { error } = await supabase.from("reversements").insert({
     agence_id: profil.agenceId,
-    bail_id: bailId,
+    bail_id: null,
     proprietaire_id: proprietaireId,
     periode: `${d.periode}-01`,
     montant_loyer: d.montantLoyer,
@@ -79,16 +66,22 @@ export async function creerReversement(
     cree_par: profil.id,
   });
 
-  if (error) return { error: "Enregistrement du reversement impossible." };
+  if (error) {
+    // 23505 = violation d'unicité (déjà reversé ce mois-ci).
+    if (error.code === "23505") {
+      return { error: "Un reversement existe déjà pour ce propriétaire ce mois-ci." };
+    }
+    return { error: "Enregistrement du reversement impossible." };
+  }
 
-  revalidatePath(`/gestion-locative/${bailId}`);
-  redirect(`/gestion-locative/${bailId}`);
+  revalidatePath("/paiements/proprietaires");
+  redirect(`/paiements/proprietaires?mois=${d.periode}`);
 }
 
-/** Annule (suppression logique) un reversement. */
-export async function supprimerReversement(
+/** Annule (suppression logique) le reversement d'un propriétaire. */
+export async function supprimerReversementProprietaire(
   id: string,
-  bailId: string,
+  mois: string,
   _prevState: ReversementState,
   _formData: FormData
 ): Promise<ReversementState> {
@@ -96,7 +89,6 @@ export async function supprimerReversement(
   if (!profil || !profil.actif) return { error: "Accès refusé." };
 
   const supabase = await createClient();
-
   const { error } = await supabase
     .from("reversements")
     .update({ supprime_le: new Date().toISOString() })
@@ -105,6 +97,6 @@ export async function supprimerReversement(
 
   if (error) return { error: "Annulation du reversement impossible." };
 
-  revalidatePath(`/gestion-locative/${bailId}`);
-  redirect(`/gestion-locative/${bailId}`);
+  revalidatePath("/paiements/proprietaires");
+  redirect(`/paiements/proprietaires?mois=${mois}`);
 }
