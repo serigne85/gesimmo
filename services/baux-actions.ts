@@ -198,6 +198,50 @@ export async function modifierBail(
   redirect(`/gestion-locative/${id}`);
 }
 
+/**
+ * Suppression logique d'un bail (réservée à l'admin). Jamais de DELETE physique
+ * (CLAUDE.md). Si le bail était actif et son bien « loué », le bien redevient
+ * « disponible » pour ne pas le laisser bloqué. Les échéances/paiements liés
+ * restent en base (traçabilité) mais le bail disparaît des listes.
+ */
+export async function supprimerBail(id: string): Promise<CreerBailState> {
+  const profil = await getUtilisateurConnecte();
+  if (!profil || !profil.actif) return { error: "Accès refusé." };
+  if (profil.role !== "admin") {
+    return { error: "Seul un administrateur peut supprimer un bail." };
+  }
+
+  const supabase = await createClient();
+
+  const { data: bail } = await supabase
+    .from("baux")
+    .select("statut, bien_id")
+    .eq("id", id)
+    .is("supprime_le", null)
+    .maybeSingle();
+  if (!bail) return { error: "Bail introuvable." };
+
+  const { error } = await supabase
+    .from("baux")
+    .update({ supprime_le: new Date().toISOString() })
+    .eq("id", id)
+    .is("supprime_le", null);
+  if (error) return { error: "Suppression du bail impossible." };
+
+  // Libère le bien s'il était loué par ce bail.
+  if (bail.statut === "actif") {
+    await supabase
+      .from("biens")
+      .update({ statut: "disponible" })
+      .eq("id", bail.bien_id as string)
+      .eq("statut", "loue")
+      .is("supprime_le", null);
+  }
+
+  revalidatePath("/gestion-locative");
+  return { error: null };
+}
+
 // Statuts de bien qui empêchent l'activation d'un bail (rien à louer).
 const STATUTS_BIEN_NON_LOUABLES = ["vendu", "archive"];
 

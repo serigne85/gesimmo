@@ -78,6 +78,9 @@ export async function supprimerPaiement(
 ): Promise<PaiementState> {
   const profil = await getUtilisateurConnecte();
   if (!profil || !profil.actif) return { error: "Accès refusé." };
+  if (profil.role !== "admin") {
+    return { error: "Seul un administrateur peut annuler un paiement." };
+  }
 
   const supabase = await createClient();
 

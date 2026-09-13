@@ -75,8 +75,20 @@ export type BailListe = {
   chargesMensuelles: number;
   bienReference: string;
   bienTitre: string | null;
+  proprietaireId: string;
+  proprietaireNom: string;
+  proprietaireTelephone: string;
   locataireNom: string;
   locataireTelephone: string;
+};
+
+/** Les baux d'un même propriétaire, regroupés (vue « par propriétaire »). */
+export type GroupeBauxProprietaire = {
+  proprietaireId: string;
+  proprietaireNom: string;
+  proprietaireTelephone: string;
+  baux: BailListe[];
+  totalLoyer: number; // somme des loyers + charges mensuels (FCFA)
 };
 
 /** Un bien proposé au choix lors de la création d'un bail (objectif location). */

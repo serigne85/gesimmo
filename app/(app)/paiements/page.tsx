@@ -7,7 +7,7 @@ import { moisCourant } from "@/types/suivi";
 import { formatFcfa } from "@/lib/utils/format";
 import OngletsPaiements from "@/components/metier/OngletsPaiements";
 import FiltresSuivi from "@/components/metier/FiltresSuivi";
-import LigneSuiviLoyer from "@/components/metier/LigneSuiviLoyer";
+import TableauSuiviLoyers from "@/components/metier/TableauSuiviLoyers";
 
 /**
  * Suivi des loyers : toutes les échéances d'un mois, retards en évidence, actions
@@ -60,11 +60,7 @@ export default async function PaiementsPage({
           Aucune échéance pour ce mois avec ce filtre.
         </div>
       ) : (
-        <ul className="divide-y divide-zinc-200 overflow-hidden rounded-lg border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
-          {rows.map((ligne) => (
-            <LigneSuiviLoyer key={ligne.echeanceId} ligne={ligne} />
-          ))}
-        </ul>
+        <TableauSuiviLoyers lignes={rows} />
       )}
     </div>
   );

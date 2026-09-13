@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Receipt, FileCheck } from "lucide-react";
 import { getEcheanceDetail } from "@/services/paiements";
+import { getUtilisateurConnecte } from "@/services/auth";
 import {
   situationEcheance,
   resteEcheance,
@@ -22,8 +23,12 @@ export default async function EcheancePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const echeance = await getEcheanceDetail(id);
+  const [echeance, profil] = await Promise.all([
+    getEcheanceDetail(id),
+    getUtilisateurConnecte(),
+  ]);
   if (!echeance) notFound();
+  const estAdmin = profil?.role === "admin";
 
   const aujourdhui = new Date().toLocaleDateString("en-CA", {
     timeZone: "Africa/Dakar",
@@ -128,7 +133,7 @@ export default async function EcheancePage({
                   >
                     <Receipt className="h-4 w-4" aria-hidden="true" />
                   </Link>
-                  <BoutonAnnulerPaiement id={p.id} />
+                  {estAdmin && <BoutonAnnulerPaiement id={p.id} />}
                 </div>
               </li>
             ))}

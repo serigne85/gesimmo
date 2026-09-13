@@ -1,6 +1,12 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { BailListe, BienLouable, BailDetail } from "@/types/bail";
+import {
+  loyerTotal,
+  type BailListe,
+  type BienLouable,
+  type BailDetail,
+  type GroupeBauxProprietaire,
+} from "@/types/bail";
 
 export const BAUX_PAGE_SIZE = 20;
 
@@ -17,6 +23,43 @@ function premier<T>(rel: T | T[] | null | undefined): T | null {
   return rel ?? null;
 }
 
+// Colonnes chargées pour une ligne de liste (bien + propriétaire + locataire).
+const SELECT_BAIL_LISTE =
+  "id, reference, statut, date_debut, date_fin, " +
+  "loyer_mensuel, charges_mensuelles, " +
+  "biens(reference, titre, proprietaire:contacts!proprietaire_id(id, nom_complet, telephone)), " +
+  "locataire:contacts(nom_complet, telephone)";
+
+/** Transforme une ligne SQL (avec jointures) en BailListe. */
+function mapBailListe(b: Record<string, unknown>): BailListe {
+  const bien = premier(
+    b.biens as Record<string, unknown> | Record<string, unknown>[] | null
+  );
+  const proprietaire = premier(
+    bien?.proprietaire as Record<string, unknown> | Record<string, unknown>[] | null
+  );
+  const locataire = premier(
+    b.locataire as Record<string, unknown> | Record<string, unknown>[] | null
+  );
+
+  return {
+    id: b.id as string,
+    reference: b.reference as string,
+    statut: b.statut as BailListe["statut"],
+    dateDebut: (b.date_debut as string | null) ?? null,
+    dateFin: (b.date_fin as string | null) ?? null,
+    loyerMensuel: (b.loyer_mensuel as number) ?? 0,
+    chargesMensuelles: (b.charges_mensuelles as number) ?? 0,
+    bienReference: (bien?.reference as string) ?? "",
+    bienTitre: (bien?.titre as string | null) ?? null,
+    proprietaireId: (proprietaire?.id as string) ?? "",
+    proprietaireNom: (proprietaire?.nom_complet as string) ?? "",
+    proprietaireTelephone: (proprietaire?.telephone as string) ?? "",
+    locataireNom: (locataire?.nom_complet as string) ?? "",
+    locataireTelephone: (locataire?.telephone as string) ?? "",
+  };
+}
+
 /**
  * Liste paginée des baux de l'agence (RLS : cloisonné automatiquement).
  * Le bien et le locataire sont joints en une requête.
@@ -28,13 +71,7 @@ export async function listBaux(page = 1): Promise<BauxPage> {
 
   const { data, count, error } = await supabase
     .from("baux")
-    .select(
-      "id, reference, statut, date_debut, date_fin, " +
-        "loyer_mensuel, charges_mensuelles, " +
-        "biens(reference, titre), " +
-        "locataire:contacts(nom_complet, telephone)",
-      { count: "exact" }
-    )
+    .select(SELECT_BAIL_LISTE, { count: "exact" })
     .is("supprime_le", null)
     .order("cree_le", { ascending: false })
     .range(from, to);
@@ -42,30 +79,48 @@ export async function listBaux(page = 1): Promise<BauxPage> {
   if (error) throw new Error(`Lecture des baux impossible : ${error.message}`);
 
   const lignes = (data ?? []) as unknown as Record<string, unknown>[];
-  const rows: BailListe[] = lignes.map((b) => {
-    const bien = premier(
-      b.biens as Record<string, unknown> | Record<string, unknown>[] | null
-    );
-    const locataire = premier(
-      b.locataire as Record<string, unknown> | Record<string, unknown>[] | null
-    );
-
-    return {
-      id: b.id as string,
-      reference: b.reference as string,
-      statut: b.statut as BailListe["statut"],
-      dateDebut: (b.date_debut as string | null) ?? null,
-      dateFin: (b.date_fin as string | null) ?? null,
-      loyerMensuel: (b.loyer_mensuel as number) ?? 0,
-      chargesMensuelles: (b.charges_mensuelles as number) ?? 0,
-      bienReference: (bien?.reference as string) ?? "",
-      bienTitre: (bien?.titre as string | null) ?? null,
-      locataireNom: (locataire?.nom_complet as string) ?? "",
-      locataireTelephone: (locataire?.telephone as string) ?? "",
-    };
-  });
+  const rows = lignes.map(mapBailListe);
 
   return { rows, total: count ?? 0, page, pageSize: BAUX_PAGE_SIZE };
+}
+
+/**
+ * Tous les baux de l'agence regroupés par propriétaire (via biens.proprietaire_id),
+ * triés par nom de propriétaire puis par bail le plus récent. Pas de pagination :
+ * la vue « par propriétaire » a besoin de l'ensemble pour grouper (échelle V1,
+ * une agence). RLS : cloisonné automatiquement.
+ */
+export async function listBauxParProprietaire(): Promise<GroupeBauxProprietaire[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("baux")
+    .select(SELECT_BAIL_LISTE)
+    .is("supprime_le", null)
+    .order("cree_le", { ascending: false });
+
+  if (error) throw new Error(`Lecture des baux impossible : ${error.message}`);
+
+  const lignes = (data ?? []) as unknown as Record<string, unknown>[];
+
+  const parProprietaire = new Map<string, GroupeBauxProprietaire>();
+  for (const ligne of lignes) {
+    const bail = mapBailListe(ligne);
+    const groupe = parProprietaire.get(bail.proprietaireId) ?? {
+      proprietaireId: bail.proprietaireId,
+      proprietaireNom: bail.proprietaireNom,
+      proprietaireTelephone: bail.proprietaireTelephone,
+      baux: [],
+      totalLoyer: 0,
+    };
+    groupe.baux.push(bail);
+    groupe.totalLoyer += loyerTotal(bail.loyerMensuel, bail.chargesMensuelles);
+    parProprietaire.set(bail.proprietaireId, groupe);
+  }
+
+  return [...parProprietaire.values()].sort((a, b) =>
+    a.proprietaireNom.localeCompare(b.proprietaireNom, "fr")
+  );
 }
 
 /**
