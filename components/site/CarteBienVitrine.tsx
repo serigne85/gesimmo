@@ -43,8 +43,8 @@ export default function CarteBienVitrine({ bien }: { bien: BienVitrine }) {
         >
           {objectifLabel}
         </span>
-        <span className="absolute right-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur">
-          {TYPE_BIEN_LABELS[bien.type]}
+        <span className="absolute right-3 top-3 max-w-[60%] truncate rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur">
+          {bien.titre ?? TYPE_BIEN_LABELS[bien.type]}
         </span>
       </div>
 
