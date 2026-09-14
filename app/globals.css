@@ -39,12 +39,43 @@
   --color-orange: #f1592a;
   --color-orange-hover: #d8481d;
 
-  /* Police d'affichage pour les titres (définie dans le layout du site). */
-  --font-display: var(--font-fraunces);
+  /* Marine très sombre — fond du pied de page « premium ». */
+  --color-marine-950: #0c2543;
+
+  /* Police du site (chargée dans le layout via next/font, cf. --font-display-family).
+   * `font-display` = titres ; la même famille sert le texte courant via .site-shell. */
+  --font-display: var(--font-display-family);
+}
+
+/*
+ * Police de base du SITE VITRINE uniquement. On l'applique sur la coquille du
+ * groupe (site) et non sur `body`, pour ne pas modifier l'ERP interne (qui
+ * conserve sa police système). Le texte courant hérite ainsi de DM Sans ;
+ * les titres montent en graisse via l'utilitaire `font-display`.
+ */
+.site-shell {
+  font-family: var(--font-display-family), ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/*
+ * Impression : on masque la coquille de l'application (sidebar + topbar) pour
+ * que seuls les documents (contrat, reçu, quittance) sortent sur le papier.
+ * La zone de contenu reprend toute la largeur, fond blanc, sans marge d'écran.
+ */
+@media print {
+  aside,
+  header {
+    display: none !important;
+  }
+  main {
+    overflow: visible !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
 }

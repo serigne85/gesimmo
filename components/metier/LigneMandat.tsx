@@ -1,4 +1,5 @@
-import { Star } from "lucide-react";
+import Link from "next/link";
+import { Star, FileSignature } from "lucide-react";
 import {
   TYPE_MANDAT_LABELS,
   formatCommission,
@@ -44,9 +45,19 @@ export default function LigneMandat({ mandat }: { mandat: MandatListe }) {
         </p>
       </div>
 
-      <div className="text-sm text-zinc-500 sm:text-right dark:text-zinc-400">
-        <p>{formatCommission(mandat.commissionValeur, mandat.commissionUnite)}</p>
-        {periode && <p className="text-xs">{periode}</p>}
+      <div className="flex items-center gap-4 sm:justify-end">
+        <div className="text-sm text-zinc-500 sm:text-right dark:text-zinc-400">
+          <p>{formatCommission(mandat.commissionValeur, mandat.commissionUnite)}</p>
+          {periode && <p className="text-xs">{periode}</p>}
+        </div>
+        <Link
+          href={`/mandats/${mandat.id}/contrat`}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-zinc-300 px-2.5 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+          title="Rédiger le contrat"
+        >
+          <FileSignature className="h-4 w-4" aria-hidden="true" />
+          Contrat
+        </Link>
       </div>
     </li>
   );

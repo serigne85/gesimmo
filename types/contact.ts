@@ -81,12 +81,25 @@ export type MiseEnRelationLieeContact = {
   partenaireNom: string;
 };
 
+/** Identité civile d'un contact (pour les contrats). Tous champs optionnels. */
+export type ContactIdentite = {
+  id: string;
+  nomComplet: string;
+  telephone: string;
+  dateNaissance: string | null;
+  lieuNaissance: string | null;
+  cni: string | null;
+};
+
 /** Fiche détail d'un contact (entité de la table `contacts`). */
 export type ContactDetail = {
   id: string;
   nomComplet: string;
   telephone: string;
   creeLe: string;
+  dateNaissance: string | null;
+  lieuNaissance: string | null;
+  cni: string | null;
   designations: DesignationContact[];
   biensProprietaire: BienLieContact[];
   biensAssocie: BienLieContact[];

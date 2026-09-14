@@ -9,15 +9,18 @@ export const AGENCE = {
   nom: "M2S IMMO",
   slogan: "L'immobilier à Dakar, en toute confiance.",
 
-  // Téléphone affiché (format lisible). À COMPLÉTER.
-  telephone: "+221 77 000 00 00",
+  // Téléphone fixe affiché (format lisible).
+  telephone: "+221 33 833 18 34",
+
+  // Téléphone portable affiché (format lisible).
+  mobile: "+221 77 739 93 93",
 
   // Numéro WhatsApp au format international SANS le "+", pour les liens wa.me.
-  // Ex. un numéro sénégalais 77 123 45 67 → "221771234567". À COMPLÉTER.
-  whatsapp: "221770000000",
+  // = le portable (77 739 93 93 → 221 777 39 93 93).
+  whatsapp: "221777399393",
 
-  email: "contact@m2simmo.sn", // À COMPLÉTER
-  adresse: "Dakar, Sénégal", // À COMPLÉTER (rue / quartier)
+  email: "contact@m2simmo.com",
+  adresse: "Castors 3, Bargny – Dakar",
 
   // Réseaux sociaux (URL complètes). Laisser vide ("") pour masquer le lien.
   facebook: "",
@@ -27,7 +30,7 @@ export const AGENCE = {
 /**
  * URL de base publique du site (sans slash final). Sert à construire les liens
  * absolus nécessaires au partage et aux aperçus Open Graph. En production,
- * définir NEXT_PUBLIC_SITE_URL (ex. "https://m2simmo.sn") dans les variables
+ * définir NEXT_PUBLIC_SITE_URL (ex. "https://m2simmo.com") dans les variables
  * d'environnement Vercel ; en local, on retombe sur http://localhost:3000.
  */
 export const SITE_URL = (

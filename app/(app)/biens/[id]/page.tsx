@@ -7,6 +7,7 @@ import {
   Pencil,
   Video,
   Handshake,
+  Target,
 } from "lucide-react";
 import { getBienById } from "@/services/biens";
 import { getPhotosBien } from "@/services/photos";
@@ -78,8 +79,18 @@ export default async function BienDetailPage({
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href={`/biens/${bien.id}/mettre-en-relation`}
+            href={`/opportunites/nouveau?${new URLSearchParams({
+              bienId: bien.id,
+              titre: bien.titre || `${TYPE_BIEN_LABELS[bien.type]} ${bien.reference}`,
+            }).toString()}`}
             className="inline-flex items-center gap-2 rounded-md bg-blue-900 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-800"
+          >
+            <Target className="h-4 w-4" aria-hidden="true" />
+            Créer une opportunité
+          </Link>
+          <Link
+            href={`/biens/${bien.id}/mettre-en-relation`}
+            className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
           >
             <Handshake className="h-4 w-4" aria-hidden="true" />
             Mettre en relation

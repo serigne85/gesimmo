@@ -7,6 +7,7 @@ import {
   CalendarPlus,
   ListPlus,
   Building2,
+  Pencil,
 } from "lucide-react";
 import { getContactDetail } from "@/services/contacts";
 import type {
@@ -108,7 +109,26 @@ export default async function ContactDetailPage({
           <ListPlus className="h-4 w-4" aria-hidden="true" />
           Créer une relance
         </Link>
+        <Link
+          href={`/contacts/${contact.id}/modifier`}
+          className="inline-flex items-center gap-2 rounded-md border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-900"
+        >
+          <Pencil className="h-4 w-4" aria-hidden="true" />
+          Identité civile
+        </Link>
       </div>
+
+      {/* Identité civile (pour les contrats) */}
+      <Section titre="Identité civile">
+        <div className="grid gap-x-6 gap-y-2 px-4 py-3 text-sm sm:grid-cols-3">
+          <InfoIdentite
+            libelle="Date de naissance"
+            valeur={contact.dateNaissance ? formatDate(contact.dateNaissance) : null}
+          />
+          <InfoIdentite libelle="Lieu de naissance" valeur={contact.lieuNaissance} />
+          <InfoIdentite libelle="N° CNI" valeur={contact.cni} />
+        </div>
+      </Section>
 
       {contact.biensProprietaire.length > 0 && (
         <Section titre={`Biens détenus (${contact.biensProprietaire.length})`}>
@@ -159,6 +179,23 @@ export default async function ContactDetailPage({
             Aucun bien, bail, demande ni mise en relation rattaché à ce contact.
           </div>
         )}
+    </div>
+  );
+}
+
+function InfoIdentite({
+  libelle,
+  valeur,
+}: {
+  libelle: string;
+  valeur: string | null;
+}) {
+  return (
+    <div>
+      <p className="text-xs text-zinc-400 dark:text-zinc-500">{libelle}</p>
+      <p className="text-zinc-800 dark:text-zinc-200">
+        {valeur || <span className="text-zinc-400">À compléter</span>}
+      </p>
     </div>
   );
 }

@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
-import { Fraunces } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import SiteHeader from "@/components/site/SiteHeader";
 import SiteFooter from "@/components/site/SiteFooter";
 import { AGENCE, SITE_URL } from "@/lib/site/config";
 
 /**
- * Police d'affichage du site vitrine : Fraunces, un serif moderne et chaleureux
- * pour les titres. Chargée via next/font (aucune dépendance à installer, les
- * fichiers sont auto-hébergés par Next). La variable CSS --font-fraunces est
- * consommée par l'utilitaire `font-display` défini dans globals.css.
+ * Police du site vitrine : DM Sans, un sans-serif moderne et géométrique, dans
+ * l'esprit des portails immobiliers contemporains. Une seule famille sert à la
+ * fois pour le texte courant (graisses 400/500) et les titres (600/700) : le
+ * contraste vient du poids, pas d'un second caractère.
+ *
+ * Chargée via next/font (aucune dépendance à installer, fichiers auto-hébergés
+ * par Next). La variable CSS `--font-display-family` est consommée par
+ * l'utilitaire `font-display` et par la classe `.site-shell` (globals.css), ce
+ * qui garde la police cantonnée au site vitrine — l'ERP interne n'est pas touché.
  */
-const fraunces = Fraunces({
+const dmSans = DM_Sans({
   subsets: ["latin"],
-  variable: "--font-fraunces",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-display-family",
   display: "swap",
 });
 
@@ -40,7 +46,7 @@ export default function SiteLayout({
 }) {
   return (
     <div
-      className={`${fraunces.variable} flex min-h-full flex-col bg-craie-50 text-slate-900`}
+      className={`${dmSans.variable} site-shell flex min-h-full flex-col bg-craie-50 text-slate-900`}
     >
       <SiteHeader />
       <main className="flex-1">{children}</main>

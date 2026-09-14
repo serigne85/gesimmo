@@ -42,3 +42,6 @@ next-env.d.ts
 
 # supabase CLI (artefacts locaux, non versionnés)
 supabase/.temp/
+
+# Fichiers d'import de données (perso, non versionnés)
+import/

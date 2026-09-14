@@ -32,31 +32,33 @@ export default function SiteFooter() {
   const annee = new Date().getFullYear();
 
   return (
-    <footer className="mt-24 border-t border-craie-200 bg-craie-100">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
+    <footer className="mt-24 bg-marine-950 text-craie-200">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element -- petit logo statique local, <img> suffit. */}
             <img
               src="/logo-icon.png"
               alt={AGENCE.nom}
               className="h-9 w-9 rounded-lg"
             />
-            <span className="font-display text-lg font-semibold text-slate-900">
+            <span className="font-display text-lg font-bold tracking-tight text-white">
               {AGENCE.nom}
             </span>
           </div>
-          <p className="mt-3 max-w-xs text-sm text-slate-600">{AGENCE.slogan}</p>
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-craie-200/70">
+            {AGENCE.slogan}
+          </p>
 
           {(AGENCE.facebook || AGENCE.instagram) && (
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-5 flex items-center gap-3">
               {AGENCE.facebook && (
                 <a
                   href={AGENCE.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"
-                  className="grid h-9 w-9 place-items-center rounded-full bg-craie-50 text-slate-600 ring-1 ring-craie-200 transition-colors hover:text-orange-hover"
+                  className="grid h-9 w-9 place-items-center rounded-full bg-white/5 text-craie-200 ring-1 ring-white/10 transition-colors hover:bg-orange hover:text-white hover:ring-orange"
                 >
                   <IconeFacebook />
                 </a>
@@ -67,7 +69,7 @@ export default function SiteFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
-                  className="grid h-9 w-9 place-items-center rounded-full bg-craie-50 text-slate-600 ring-1 ring-craie-200 transition-colors hover:text-orange-hover"
+                  className="grid h-9 w-9 place-items-center rounded-full bg-white/5 text-craie-200 ring-1 ring-white/10 transition-colors hover:bg-orange hover:text-white hover:ring-orange"
                 >
                   <IconeInstagram />
                 </a>
@@ -77,22 +79,22 @@ export default function SiteFooter() {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-craie-200/50">
             Navigation
           </h3>
-          <ul className="mt-3 space-y-2 text-sm">
+          <ul className="mt-4 space-y-3 text-sm">
             <li>
-              <Link href="/" className="text-slate-600 hover:text-orange-hover">
+              <Link href="/" className="text-craie-200/80 transition-colors hover:text-white">
                 Accueil
               </Link>
             </li>
             <li>
-              <Link href="/nos-biens" className="text-slate-600 hover:text-orange-hover">
+              <Link href="/nos-biens" className="text-craie-200/80 transition-colors hover:text-white">
                 Nos biens
               </Link>
             </li>
             <li>
-              <Link href="/contact" className="text-slate-600 hover:text-orange-hover">
+              <Link href="/contact" className="text-craie-200/80 transition-colors hover:text-white">
                 Contact
               </Link>
             </li>
@@ -100,34 +102,34 @@ export default function SiteFooter() {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-craie-200/50">
             Contact
           </h3>
-          <ul className="mt-3 space-y-2 text-sm text-slate-600">
+          <ul className="mt-4 space-y-3 text-sm text-craie-200/80">
             <li>
               <a
                 href={telHref(AGENCE.telephone)}
-                className="inline-flex items-center gap-2 hover:text-orange-hover"
+                className="inline-flex items-center gap-2 transition-colors hover:text-white"
               >
-                <Phone className="h-4 w-4" aria-hidden="true" /> {AGENCE.telephone}
+                <Phone className="h-4 w-4 text-orange" aria-hidden="true" /> {AGENCE.telephone}
               </a>
             </li>
             <li>
               <a
                 href={`mailto:${AGENCE.email}`}
-                className="inline-flex items-center gap-2 hover:text-orange-hover"
+                className="inline-flex items-center gap-2 transition-colors hover:text-white"
               >
-                <Mail className="h-4 w-4" aria-hidden="true" /> {AGENCE.email}
+                <Mail className="h-4 w-4 text-orange" aria-hidden="true" /> {AGENCE.email}
               </a>
             </li>
             <li className="inline-flex items-center gap-2">
-              <MapPin className="h-4 w-4" aria-hidden="true" /> {AGENCE.adresse}
+              <MapPin className="h-4 w-4 text-orange" aria-hidden="true" /> {AGENCE.adresse}
             </li>
           </ul>
         </div>
       </div>
 
-      <div className="border-t border-craie-200 py-4 text-center text-xs text-slate-500">
+      <div className="border-t border-white/10 py-5 text-center text-xs text-craie-200/50">
         © {annee} {AGENCE.nom}. Tous droits réservés.
       </div>
     </footer>

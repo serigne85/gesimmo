@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   ContactUnifie,
   ContactDetail,
+  ContactIdentite,
   DesignationContact,
   BienLieContact,
   BailLieContact,
@@ -170,7 +171,7 @@ export async function getContactDetail(
 
   const { data: contact, error } = await supabase
     .from("contacts")
-    .select("id, nom_complet, telephone, cree_le")
+    .select("id, nom_complet, telephone, cree_le, date_naissance, lieu_naissance, cni")
     .eq("id", id)
     .is("supprime_le", null)
     .maybeSingle();
@@ -277,12 +278,43 @@ export async function getContactDetail(
     nomComplet: contact.nom_complet as string,
     telephone: contact.telephone as string,
     creeLe: contact.cree_le as string,
+    dateNaissance: (contact.date_naissance as string | null) ?? null,
+    lieuNaissance: (contact.lieu_naissance as string | null) ?? null,
+    cni: (contact.cni as string | null) ?? null,
     designations,
     biensProprietaire,
     biensAssocie,
     baux: bauxLies,
     demandes: demandesLiees,
     misesEnRelation,
+  };
+}
+
+/**
+ * Identité civile d'un contact, pour pré-remplir le formulaire d'édition.
+ * RLS : cloisonné à l'agence.
+ */
+export async function getContactIdentite(
+  id: string
+): Promise<ContactIdentite | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("contacts")
+    .select("id, nom_complet, telephone, date_naissance, lieu_naissance, cni")
+    .eq("id", id)
+    .is("supprime_le", null)
+    .maybeSingle();
+
+  if (error) throw new Error(`Lecture du contact impossible : ${error.message}`);
+  if (!data) return null;
+
+  return {
+    id: data.id as string,
+    nomComplet: data.nom_complet as string,
+    telephone: data.telephone as string,
+    dateNaissance: (data.date_naissance as string | null) ?? null,
+    lieuNaissance: (data.lieu_naissance as string | null) ?? null,
+    cni: (data.cni as string | null) ?? null,
   };
 }
 
