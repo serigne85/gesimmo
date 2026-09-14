@@ -64,20 +64,23 @@ export default async function NosBiensPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <header className="mb-8">
-        <h1 className="font-display text-3xl font-semibold text-slate-900 sm:text-4xl">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
           Nos biens disponibles
         </h1>
         <p className="mt-2 text-slate-600">
-          {total} bien{total > 1 ? "s" : ""} à découvrir à Dakar.
+          <span className="font-semibold text-marine">{total}</span> bien
+          {total > 1 ? "s" : ""} à découvrir à Dakar.
         </p>
       </header>
 
       <FiltresVitrine zones={zones} />
 
       {rows.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center rounded-2xl border border-dashed border-craie-200 bg-craie-100/50 p-14 text-center">
-          <SearchX className="h-10 w-10 text-slate-400" aria-hidden="true" />
-          <p className="mt-4 font-medium text-slate-700">
+        <div className="mt-10 flex flex-col items-center rounded-2xl border border-dashed border-craie-200 bg-white p-14 text-center shadow-sm">
+          <span className="grid h-14 w-14 place-items-center rounded-2xl bg-craie-100 text-slate-400">
+            <SearchX className="h-7 w-7" aria-hidden="true" />
+          </span>
+          <p className="mt-4 font-semibold text-slate-700">
             Aucun bien ne correspond à votre recherche
           </p>
           <p className="mt-1 text-sm text-slate-500">
@@ -103,8 +106,8 @@ export default async function NosBiensPage({
             label="Précédent"
             paramsBase={paramsBase}
           />
-          <span className="text-slate-500">
-            Page {page} / {nbPages}
+          <span className="font-medium text-slate-600">
+            Page <span className="font-bold text-marine">{page}</span> / {nbPages}
           </span>
           <PaginationLien
             page={page + 1}
@@ -130,14 +133,18 @@ function PaginationLien({
   paramsBase: URLSearchParams;
 }) {
   if (disabled) {
-    return <span className="text-slate-300">{label}</span>;
+    return (
+      <span className="cursor-not-allowed rounded-full border border-craie-200 px-5 py-2.5 font-medium text-slate-300">
+        {label}
+      </span>
+    );
   }
   const params = new URLSearchParams(paramsBase);
   params.set("page", String(page));
   return (
     <Link
       href={`/nos-biens?${params.toString()}`}
-      className="rounded-full border border-craie-200 px-4 py-2 font-medium text-slate-700 transition-colors hover:bg-craie-100"
+      className="rounded-full border border-marine px-5 py-2.5 font-semibold text-marine transition-colors hover:bg-marine hover:text-white"
     >
       {label}
     </Link>

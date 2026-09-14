@@ -29,7 +29,7 @@ export default function GalerieBienVitrine({
 
   return (
     <div className="space-y-3">
-      <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-craie-100 ring-1 ring-craie-200">
+      <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl bg-craie-100 shadow-sm ring-1 ring-craie-200">
         <img
           src={photos[actif]}
           alt={alt}
@@ -48,7 +48,7 @@ export default function GalerieBienVitrine({
                 aria-current={i === actif}
                 className={`block aspect-square w-full overflow-hidden rounded-lg ring-2 transition ${
                   i === actif
-                    ? "ring-orange"
+                    ? "ring-marine"
                     : "ring-transparent hover:ring-craie-200"
                 }`}
               >

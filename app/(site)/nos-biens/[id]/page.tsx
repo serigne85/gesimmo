@@ -123,7 +123,7 @@ export default async function FicheBienPage({
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <Link
         href="/nos-biens"
-        className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-orange-hover"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition-colors hover:text-marine"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Retour aux biens
       </Link>
@@ -134,21 +134,20 @@ export default async function FicheBienPage({
           <GalerieBienVitrine photos={bien.photos} alt={titre} />
 
           <div className="mt-8">
-            <h2 className="font-display text-xl font-semibold text-slate-900">
+            <h2 className="font-display text-xl font-bold tracking-tight text-slate-900">
               Caractéristiques
             </h2>
             <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
               {caracteristiques.map((c) => (
                 <div
                   key={c.label}
-                  className="rounded-xl bg-craie-100/60 p-4 ring-1 ring-craie-200"
+                  className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-craie-200"
                 >
-                  <c.icon
-                    className="h-5 w-5 text-orange-hover"
-                    aria-hidden="true"
-                  />
-                  <dt className="mt-2 text-xs text-slate-500">{c.label}</dt>
-                  <dd className="text-sm font-medium text-slate-800">
+                  <span className="grid h-9 w-9 place-items-center rounded-lg bg-marine/10 text-marine">
+                    <c.icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <dt className="mt-3 text-xs text-slate-500">{c.label}</dt>
+                  <dd className="text-sm font-semibold text-slate-800">
                     {c.valeur}
                   </dd>
                 </div>
@@ -158,7 +157,7 @@ export default async function FicheBienPage({
 
           {bien.description && (
             <div className="mt-8">
-              <h2 className="font-display text-xl font-semibold text-slate-900">
+              <h2 className="font-display text-xl font-bold tracking-tight text-slate-900">
                 Description
               </h2>
               <p className="mt-3 whitespace-pre-line leading-relaxed text-slate-700">
@@ -181,21 +180,21 @@ export default async function FicheBienPage({
 
         {/* Colonne latérale : prix + contact (collante sur grand écran) */}
         <aside className="lg:col-span-1">
-          <div className="rounded-2xl bg-craie-50 p-6 ring-1 ring-craie-200 lg:sticky lg:top-24">
+          <div className="rounded-2xl bg-white p-6 shadow-lg shadow-marine-950/5 ring-1 ring-craie-200 lg:sticky lg:top-24">
             <span
               className={`inline-block rounded-full px-3 py-1 text-xs font-semibold text-white ${objectifClasse}`}
             >
               {objectifLabel}
             </span>
-            <h1 className="mt-3 font-display text-2xl font-semibold text-slate-900">
+            <h1 className="mt-3 font-display text-2xl font-bold tracking-tight text-slate-900">
               {titre}
             </h1>
             {lieu && (
               <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
-                <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" /> {lieu}
+                <MapPin className="h-4 w-4 shrink-0 text-marine" aria-hidden="true" /> {lieu}
               </p>
             )}
-            <p className="mt-4 font-display text-2xl font-semibold text-orange-hover">
+            <p className="mt-4 font-display text-3xl font-bold text-marine">
               {prix}
             </p>
             <p className="mt-1 font-mono text-xs text-slate-400">
